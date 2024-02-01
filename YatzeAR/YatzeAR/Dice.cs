@@ -1,5 +1,6 @@
 ﻿using Emgu.CV.Structure;
 
+
 namespace YatzeAR
 {
     public class Dice
@@ -46,6 +47,7 @@ namespace YatzeAR
                     {  0, 255,   0}
             }}
         };
+
         public static readonly MCvPoint3D32f[][] DiceWorldCoors = new[] {
             new MCvPoint3D32f[]{
                 new MCvPoint3D32f(0, 0, 0),
