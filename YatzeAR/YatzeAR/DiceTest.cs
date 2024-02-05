@@ -31,28 +31,10 @@ namespace YatzeAR
 			string currentDir = Directory.GetCurrentDirectory();
 			string[] tmp = Directory.GetFiles(currentDir, "dice4.png");
 			_image = tmp[0];
-			ReadIntrinsicsFromFile(out intrinsics, out distCoeffs);
+			AR.ReadIntrinsicsFromFile(out intrinsics, out distCoeffs);
 		}
 
-		public static void ReadIntrinsicsFromFile(out Matrix<float> intrinsics, out Matrix<float> distCoeffs)
-		{
-			Mat intrinsicsMat = new Mat();
-			Mat distCoeffsMat = new Mat();
-
-			using FileStorage fs = new FileStorage("intrinsics.json", FileStorage.Mode.Read);
-
-			FileNode intrinsicsNode = fs.GetNode("Intrinsics");
-			FileNode distCoeffsNode = fs.GetNode("DistCoeffs");
-
-			intrinsicsNode.ReadMat(intrinsicsMat);
-			distCoeffsNode.ReadMat(distCoeffsMat);
-
-			intrinsics = new Matrix<float>(3, 3);
-			distCoeffs = new Matrix<float>(1, 5);
-
-			intrinsicsMat.ConvertTo(intrinsics, DepthType.Cv32F);
-			distCoeffsMat.ConvertTo(distCoeffs, DepthType.Cv32F);
-		}
+		
 
 		public override void OnFrame()
 		{
@@ -74,17 +56,19 @@ namespace YatzeAR
 				Mat binary = new Mat();
 				CvInvoke.Threshold(gray, binary, 120, 255, ThresholdType.Otsu);
 
+				CvInvoke.Imshow("Binary", binary);
+
 				VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
 				Mat hierachy = new Mat();
 				CvInvoke.FindContours(binary, contours, hierachy, RetrType.List, ChainApproxMethod.ChainApproxSimple);
 
 				//jeg har reduceret/givet en tolerance på 8 
-				VectorOfVectorOfPoint validContours = AR.GetValidContours(contours);
+				VectorOfVectorOfPoint validContours = AR.DANIELGetValidContours(contours);
 
 				Image<Gray, byte> binaryImage = binary.ToImage<Gray, byte>();
 
-				//TODO disse afhænger af afstanden fra kameraet så skal justeres
-				double minArea = 800; // Set this to the minimum dice area you expect
+                //TODO disse afhænger af afstanden fra kameraet så skal justeres
+                double minArea = 800; // Set this to the minimum dice area you expect
 				double maxArea = 1700; // Set this to the maximum dice area you expect
 
 				//aspect ratio burde være fint som det er
@@ -126,9 +110,10 @@ namespace YatzeAR
 						}
 					}
 
-					
+
 					// Process the diceArray to count the number of pips
-					int numberOfPips = CountPips(diceArray);
+					//int numberOfPips = CountPips(diceArray);
+					int numberOfPips = Recognize(diceArray);
 
 					// Write the number of pips onto the dice surface in the original image
 					Point centerOfDice = new Point(boundingRectangle.X + boundingRectangle.Width / 2, boundingRectangle.Y + boundingRectangle.Height / 2);
@@ -138,6 +123,54 @@ namespace YatzeAR
 				CvInvoke.DrawContours(frame, validContours, -1, new MCvScalar(0, 255, 0), 1);
 				CvInvoke.Imshow("Dice", frame);
 			}
+		}
+
+		private int Recognize(byte[,] input)
+		{
+			int xTotal = input.GetLength(0);
+			int yTotal = input.GetLength(1);
+
+			int x3 = xTotal / 3;
+			int y3 = yTotal / 3;
+
+			int foundDots = 0;
+
+			if (SearchArea(input, x3, y3, 3))
+			{
+				foundDots++;
+			}
+			for (int y = 0; y < yTotal-1; y++)
+			{
+                for (int x = 0; x < xTotal - 1; x++)
+                {
+					string write = "";
+					if (input[x, y] == 255) write = "M";
+					else write = " ";
+
+					Console.Write(write);
+                }
+				Console.WriteLine();
+            }
+
+
+            return foundDots;
+		}
+
+		private bool SearchArea(byte[,] input, int searchX, int searchY, int searchArea)
+		{
+			for (int x = searchArea * -1; x < searchArea; x++)
+			{
+				for (int y = searchArea * -1; y < searchArea; y++)
+				{
+					if (input[searchX + x, searchY + y] == 0)
+					{
+						return true;
+					}
+				}
+			}
+
+
+			return false;
 		}
 
 		//Det her er lidt overkill at køre konstant, så hvis det skal bruges burde det nok være når man trykker på en knap

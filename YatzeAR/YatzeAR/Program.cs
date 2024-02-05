@@ -4,7 +4,7 @@
     {
         static void Main(string[] args)
         {
-            DiceTest diceAR = new DiceTest();
+            var diceAR = new DiceAR();
             diceAR.Run();
         }
     }
