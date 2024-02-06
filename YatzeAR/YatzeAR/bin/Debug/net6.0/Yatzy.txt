@@ -1,0 +1,18 @@
+Ones, 5,
+Twos, 10,
+Threes, 15,
+Fours, 20,
+Fives, 25,
+Sixes, 30
+Sum, 0,
+Bonus, 50,
+One pair, 12,
+Two pairs, 22,
+Three of a kind, 18,
+Four of a kind, 24,
+Small straight (Sequence of 4), 15,
+Large straight (Sequence of 5), 20,
+Full house (Two pairs and three of a kind), 28,
+Chance, 30,
+Yatzy, 50,
+Sum, 0
