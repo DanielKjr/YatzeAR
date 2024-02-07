@@ -29,7 +29,7 @@ namespace YatzeAR
 		public void LoadImg()
 		{
 			string currentDir = Directory.GetCurrentDirectory();
-			string[] tmp = Directory.GetFiles(currentDir, "dice4.png");
+			string[] tmp = Directory.GetFiles(currentDir, "dice40.png");
 			_image = tmp[0];
 			ReadIntrinsicsFromFile(out intrinsics, out distCoeffs);
 		}
@@ -78,10 +78,18 @@ namespace YatzeAR
 				Mat hierachy = new Mat();
 				CvInvoke.FindContours(binary, contours, hierachy, RetrType.List, ChainApproxMethod.ChainApproxSimple);
 
+				//// 5.02.2024
+				CvInvoke.DrawContours(binary, contours, -1, new MCvScalar(255, 0, 0));
+				CvInvoke.Imshow("binary", binary);
+
 				//jeg har reduceret/givet en tolerance på 8 
 				VectorOfVectorOfPoint validContours = AR.GetValidContours(contours);
 
-				Image<Gray, byte> binaryImage = binary.ToImage<Gray, byte>();
+                // 5.02.2024
+                CvInvoke.DrawContours(frame, validContours, -1, new MCvScalar(255, 0, 0));
+                CvInvoke.Imshow("newContousPicture", frame);
+
+                Image<Gray, byte> binaryImage = binary.ToImage<Gray, byte>();
 
 				//TODO disse afhænger af afstanden fra kameraet så skal justeres
 				double minArea = 800; // Set this to the minimum dice area you expect
