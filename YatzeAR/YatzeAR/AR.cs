@@ -31,6 +31,17 @@ namespace YatzeAR
             return binaryFrame;
         }
 
+        public static Mat ResizeBinaryFrame(Mat frame, Size newSize)
+        {
+            Mat resized = new Mat();
+            CvInvoke.Resize(frame, resized, newSize);
+
+            Mat binaryFrame = new Mat();
+            CvInvoke.Threshold(resized, binaryFrame, 120, 255, ThresholdType.Otsu);
+
+            return binaryFrame;
+        }
+
         public static VectorOfVectorOfPoint DANIELGetContours(Mat binaryFrame)
         {
             VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
@@ -152,11 +163,11 @@ namespace YatzeAR
         /// <param name="rawImg"></param>
         /// <param name="size"></param>
         /// <returns>Warped and oriented list of Mats</returns>
-        public static List<Mat> FindHomography(VectorOfVectorOfPoint DPContours, Mat rawImg, int size = 300)
+        public static List<CorrectedDice> FindHomography(VectorOfVectorOfPoint DPContours, Mat rawImg, int size = 300)
         {
             Point[] pointArray = new Point[4] { new Point(0, 0), new Point(size, 0), new Point(size, 300), new Point(0, size) };
             VectorOfPoint dest = new VectorOfPoint(pointArray);
-            List<Mat> mats = new List<Mat>();
+            List<CorrectedDice> correctedDice = new List<CorrectedDice>();
 
             for (int i = 0; i < DPContours.Size; i++)
             {
@@ -168,10 +179,14 @@ namespace YatzeAR
 
                 CvInvoke.WarpPerspective(rawImg, output, mapMatrix, new Size(size, size));
 
-                mats.Add(output);
+                correctedDice.Add(new CorrectedDice
+                {
+                    Mat = output,
+                    Contour = contour,
+                });
             }
 
-            return mats;
+            return correctedDice;
         }
 
         /// <summary>
@@ -198,5 +213,10 @@ namespace YatzeAR
             intrinsicsMat.ConvertTo(intrinsics, DepthType.Cv32F);
             distCoeffsMat.ConvertTo(distCoeffs, DepthType.Cv32F);
         }
+    }
+    public class CorrectedDice
+    {
+        public Mat Mat { get; set; } = new Mat();
+        public VectorOfPoint Contour { get; set; } = new VectorOfPoint();
     }
 }

@@ -8,9 +8,7 @@ namespace YatzeAR
 {
     public class DiceAR : FrameLoop
     {
-        private int count = 0;
         private Matrix<float>? distCoeffs;
-        private int homo = 0;
         private string? image;
         private Matrix<float>? intrinsics;
         private VideoCapture videoCapture;
@@ -19,7 +17,7 @@ namespace YatzeAR
         {
 #if DEBUG
             string currentDir = Directory.GetCurrentDirectory();
-            string[] tmp = Directory.GetFiles(currentDir, "dice4.png");
+            string[] tmp = Directory.GetFiles(currentDir, "dice5.png");
             image = tmp[0];
 #endif
 
@@ -37,99 +35,87 @@ namespace YatzeAR
                 //if (!grabbed) return;
 
                 Mat binaryFrame = AR.ConvertToBinaryFrame(rawFrame);
-#if DEBUG
-                CvInvoke.Imshow("Binary", binaryFrame);
-#endif
+
                 VectorOfVectorOfPoint DPCounter = AR.DouglasPeuckerFilter(binaryFrame);
 
                 AR.DrawArea(DPCounter, rawFrame);
 
-                List<Mat> correctedMats = AR.FindHomography(DPCounter, binaryFrame);
-                DisplayNextCorrectedImage(correctedMats);
+                List<CorrectedDice> correctedMats = AR.FindHomography(DPCounter, binaryFrame);
 
-                CountDips(DPCounter, binaryFrame, rawFrame);
+                CountDips(correctedMats, rawFrame);
 
                 CvInvoke.DrawContours(rawFrame, DPCounter, -1, new MCvScalar(255, 0, 0), 2);
                 CvInvoke.Imshow("normal", rawFrame);
             }
         }
-        private void CountDips(VectorOfVectorOfPoint DPCounter, Mat binaryFrame, Mat rawFrame)
+        private void CountDips(List<CorrectedDice> mats, Mat rawFrame)
         {
-            for (int i = 0; i < DPCounter.Size; i++)
+            int hi = 0;
+            foreach (var mat in mats)
             {
-                Image<Gray, byte> binaryImage = binaryFrame.ToImage<Gray, byte>();
-                Rectangle boundingRectangle = CvInvoke.BoundingRectangle(DPCounter[i]);
+                hi++;
+                Size calculationSize = new Size(50, 50);
 
-                // If the contour passes all the filters, it's probably a dice
-                int diceWidth = boundingRectangle.Width;
-                int diceHeight = boundingRectangle.Height;
+                Mat binaryFrame = AR.ResizeBinaryFrame(mat.Mat, calculationSize);
+
+                Image<Gray, byte> binaryImage = binaryFrame.ToImage<Gray, byte>();
+
+                Rectangle boundingRectangle = CvInvoke.BoundingRectangle(mat.Contour);
 
                 // Create a byte array of the appropriate size
-                byte[,] diceArray = new byte[diceWidth, diceHeight];
+                byte[,] diceArray = new byte[calculationSize.Width, calculationSize.Height];
+
                 // Fill the array with the pixel values from the dice region of the image
-                for (int x = 0; x < diceWidth; x++)
+                for (int x = 0; x < calculationSize.Width; x++)
                 {
-                    for (int y = 0; y < diceHeight; y++)
+                    for (int y = 0; y < calculationSize.Height; y++)
                     {
-                        diceArray[x, y] = binaryImage.Data[y + boundingRectangle.Top, x + boundingRectangle.Left, 0];
+                        diceArray[x, y] = binaryImage.Data[y, x, 0];
                     }
                 }
 
-                int numberOfPips = Recognize(diceArray);
+                CvInvoke.Imshow(hi.ToString(), binaryFrame);
+                //int numberOfPips = Recognize(diceArray, 3);
+                int numberOfPips = CountPips(diceArray, 40, 100);
 
                 // Write the number of pips onto the dice surface in the original image
-                Point centerOfDice = new Point(boundingRectangle.X + boundingRectangle.Width / 2, boundingRectangle.Y + boundingRectangle.Height / 2);
-                CvInvoke.PutText(rawFrame, numberOfPips.ToString(), centerOfDice, FontFace.HersheySimplex, 1.0, new MCvScalar(0, 0, 255));
+                Point centerOfDice = new Point(boundingRectangle.X + boundingRectangle.Width / 2 - 5, boundingRectangle.Y + boundingRectangle.Height / 2 + 5);
+                CvInvoke.PutText(rawFrame, numberOfPips.ToString(), centerOfDice, FontFace.HersheySimplex, 1.0, new MCvScalar(0, 0, 255), 2);
             }
         }
-
-        private void DisplayNextCorrectedImage(List<Mat> mats)
+        private int Recognize(byte[,] input, int searchSize = 3)
         {
-            try
-            {
-                CvInvoke.Imshow("homo", mats[homo]);
-                if (count > 30) { homo++; count = 0; }
-                if (homo >= mats.Count) homo = 0;
-                count++;
-            }
-            catch { }
-        }
-        private int Recognize(byte[,] input)
-        {
-            int xTotal = input.GetLength(0);
-            int yTotal = input.GetLength(1);
-
-            int xGrid = xTotal / 3;
-            int yGrid = yTotal / 3;
-
-            int xOffset = 2;
-            int yOffset = 2;
-
+            //OutToConsole(input);
+            int xGrid = input.GetLength(0) / 6;
+            int yGrid = input.GetLength(1) / 6;
             int foundDots = 0;
-            int searchSize = 2;
+            List<string> saver = new List<string>();
 
-            if (SearchArea(input, xOffset, yOffset, searchSize))
+            for (int x = 1; x < 6; x+=2)
             {
-                foundDots++;
+                for (int y = 1; y < 6; y += 2)
+                {
+                    if (SearchArea(input,xGrid*x,yGrid*y,searchSize))
+                    {
+                        foundDots++;
+                        saver.Add($"FOUND-{xGrid*x}-{yGrid*y}  -  DIR:{input[xGrid*x,yGrid*y]}");
+                    }
+                    else
+                    {
+                        saver.Add($"EMPTY-{xGrid * x}-{yGrid * y}  -  DIR:{input[xGrid * x, yGrid * y]}");
+                    }
+                }
             }
-            if (SearchArea(input, xOffset + xGrid, yOffset, searchSize))
-            {
-                foundDots++;
-            }
-            if (SearchArea(input, xOffset + (xGrid*2), yOffset, searchSize))
-            {
-                foundDots++;
-            }
-
+            if (foundDots > 6) foundDots = 6;
 
             return foundDots;
         }
 
-        private bool SearchArea(byte[,] input, int searchX, int searchY, int searchArea)
+        private bool SearchArea(byte[,] input, int searchX, int searchY, int searchSize)
         {
-            for (int x = searchArea * -1; x < searchArea; x++)
+            for (int x = searchSize * -1; x < searchSize; x++)
             {
-                for (int y = searchArea * -1; y < searchArea; y++)
+                for (int y = searchSize * -1; y < searchSize; y++)
                 {
                     if (input[searchX + x, searchY + y] == 0)
                     {
@@ -140,6 +126,72 @@ namespace YatzeAR
 
 
             return false;
+        }
+
+        private bool OutToConsole(byte[,] input)
+        {
+            int xc = 0;
+            int yc = 0;
+            for (int y = 0; y < input.GetLength(1); y++)
+            {
+                yc = 0;
+                xc++;
+                for (int x = 0; x < input.GetLength(0); x++)
+                {
+                    yc++;
+                    string s = "0";
+                    if (input[x, y] == 255) s = "1";
+                    Console.Write(s);
+                }
+                Console.WriteLine();
+            }
+            Console.WriteLine("\n\n");
+
+            return false;
+        }
+        private int CountPips(byte[,] diceArray, int min=30, int max=60)
+        {
+            int width = diceArray.GetLength(0);
+            int height = diceArray.GetLength(1);
+            bool[,] visited = new bool[width, height];
+            int numberOfPips = 0;
+            List<int> blobCount = new List<int>();
+
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    if (diceArray[x, y] == 0 && !visited[x, y]) // If the pixel is black and has not been visited
+                    {
+                        // Start a depth-first search from this pixel
+                        Stack<Point> stack = new Stack<Point>();
+                        stack.Push(new Point(x, y));
+                        int blobSize = 0;
+                        while (stack.Count > 0)
+                        {
+                            Point p = stack.Pop();
+                            if (p.X >= 0 && p.X < width && p.Y >= 0 && p.Y < height && diceArray[p.X, p.Y] == 0 && !visited[p.X, p.Y])
+                            {
+                                visited[p.X, p.Y] = true;
+                                blobSize++;
+                                stack.Push(new Point(p.X - 1, p.Y));
+                                stack.Push(new Point(p.X + 1, p.Y));
+                                stack.Push(new Point(p.X, p.Y - 1));
+                                stack.Push(new Point(p.X, p.Y + 1));
+                            }
+                        }
+                        blobCount.Add(blobSize);
+
+                        // Only count blobs that are within a certain size range
+                        if (blobSize >= min && blobSize <= max)
+                        {
+                            numberOfPips++;
+                        }
+                    }
+                }
+            }
+
+            return numberOfPips;
         }
     }
 }
