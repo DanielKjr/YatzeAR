@@ -6,7 +6,7 @@ namespace YatzeAR
 	{
 		static void Main(string[] args)
 		{
-			DiceTest diceAR = new DiceTest();
+			DiceAR diceAR = new DiceAR();
 			diceAR.Run();
 			//ConsoleTurnHandlerDebug();
 		}
