@@ -31,69 +31,6 @@ namespace YatzeAR
             return binaryFrame;
         }
 
-        public static Mat ResizeBinaryFrame(Mat frame, Size newSize)
-        {
-            Mat resized = new Mat();
-            CvInvoke.Resize(frame, resized, newSize);
-
-            Mat binaryFrame = new Mat();
-            CvInvoke.Threshold(resized, binaryFrame, 120, 255, ThresholdType.Otsu);
-
-            return binaryFrame;
-        }
-
-        public static VectorOfVectorOfPoint DANIELGetContours(Mat binaryFrame)
-        {
-            VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
-            CvInvoke.FindContours(binaryFrame, contours, null, RetrType.List, ChainApproxMethod.ChainApproxSimple);
-            return contours;
-        }
-
-        public static VectorOfVectorOfPoint DANIELGetValidContours(VectorOfVectorOfPoint contours)
-        {
-            VectorOfVectorOfPoint validContours = new VectorOfVectorOfPoint();
-
-            for (int i = 0; i < contours.Size; i++)
-            {
-                VectorOfPoint cont = contours[i];
-
-                VectorOfPoint approxPoly = new VectorOfPoint();
-                CvInvoke.ApproxPolyDP(cont, approxPoly, 8, true);
-
-                if (approxPoly.Size == 4)
-                {
-                    double contourLenght = CvInvoke.ArcLength(approxPoly, true);
-                    double contourArea = CvInvoke.ContourArea(approxPoly, true);
-
-                    //TODO skal måske også tjekkes
-                    bool validSize = contourLenght > 80 && contourLenght < 700;
-                    bool validOrientation = contourArea < 0;
-
-                    if (validSize && validOrientation)
-                        validContours.Push(approxPoly);
-                }
-            }
-            return validContours;
-        }
-
-        public static VectorOfMat DANIELUndistortMarkersFromContour(Mat image, VectorOfVectorOfPoint validContours)
-        {
-            VectorOfMat undistortedMarkers = new VectorOfMat();
-
-            for (int i = 0; i < validContours.Size; i++)
-            {
-                VectorOfPoint contour = validContours[i];
-                Mat homography = CvInvoke.FindHomography(contour, MARKER_SCREEN_COORDS, RobustEstimationAlgorithm.Ransac);
-
-                Mat markerContent = new Mat();
-                CvInvoke.WarpPerspective(image, markerContent, homography, new Size(60, 60));
-
-                undistortedMarkers.Push(markerContent);
-            }
-
-            return undistortedMarkers;
-        }
-
         /// <summary>
         /// Finds Contours and filters them using Douglas Peucker's algorithm
         /// <para>Then filters out any contours </para>
@@ -119,7 +56,7 @@ namespace YatzeAR
                     double contourArea = CvInvoke.ContourArea(approx, true);
                     bool area = true;
 
-                    if(minContourSize <= 0)
+                    if (minContourSize <= 0)
                     {
                         area = contourArea < minContourSize;
                     }
@@ -139,11 +76,11 @@ namespace YatzeAR
         }
 
         /// <summary>
-        /// Draws Contour Area unto incoming frame
+        /// Draws Contour Area as text unto incoming frame
         /// </summary>
         /// <param name="DPCounter"></param>
         /// <param name="rawFrame"></param>
-        public static void DrawArea(VectorOfVectorOfPoint DPCounter, Mat rawFrame)
+        public static void DrawAreaAsText(VectorOfVectorOfPoint DPCounter, Mat rawFrame)
         {
             for (int i = 0; i < DPCounter.Size; i++)
             {
@@ -157,17 +94,30 @@ namespace YatzeAR
         }
 
         /// <summary>
+        /// Draws a number of pips onto the dice
+        /// </summary>
+        /// <param name="numberOfPips"></param>
+        /// <param name="boundingRectangle"></param>
+        /// <param name="rawFrame"></param>
+        /// <param name="fontThickness"></param>
+        public static void DrawPipCountAsText(int numberOfPips, Rectangle boundingRectangle, Mat rawFrame, int fontThickness = 2)
+        {
+            Point centerOfDice = new Point(boundingRectangle.X + boundingRectangle.Width / 2 - 5, boundingRectangle.Y + boundingRectangle.Height / 2 + 5);
+            CvInvoke.PutText(rawFrame, numberOfPips.ToString(), centerOfDice, FontFace.HersheySimplex, 1.0, new MCvScalar(0, 0, 255), fontThickness);
+        }
+
+        /// <summary>
         /// Warps incoming frame into multiple mats of correct orientation using Homography
         /// </summary>
         /// <param name="DPContours"></param>
-        /// <param name="rawImg"></param>
+        /// <param name="rawFrame"></param>
         /// <param name="size"></param>
         /// <returns>Warped and oriented list of Mats</returns>
-        public static List<CorrectedDice> FindHomography(VectorOfVectorOfPoint DPContours, Mat rawImg, int size = 300)
+        public static List<Dice> FindHomography(VectorOfVectorOfPoint DPContours, Mat rawFrame, int size = 300)
         {
             Point[] pointArray = new Point[4] { new Point(0, 0), new Point(size, 0), new Point(size, 300), new Point(0, size) };
             VectorOfPoint dest = new VectorOfPoint(pointArray);
-            List<CorrectedDice> correctedDice = new List<CorrectedDice>();
+            List<Dice> dices = new List<Dice>();
 
             for (int i = 0; i < DPContours.Size; i++)
             {
@@ -177,16 +127,16 @@ namespace YatzeAR
 
                 Mat mapMatrix = CvInvoke.FindHomography(contour, dest, RobustEstimationAlgorithm.Ransac);
 
-                CvInvoke.WarpPerspective(rawImg, output, mapMatrix, new Size(size, size));
+                CvInvoke.WarpPerspective(rawFrame, output, mapMatrix, new Size(size, size));
 
-                correctedDice.Add(new CorrectedDice
+                dices.Add(new Dice
                 {
                     Mat = output,
                     Contour = contour,
                 });
             }
 
-            return correctedDice;
+            return dices;
         }
 
         /// <summary>
@@ -213,10 +163,22 @@ namespace YatzeAR
             intrinsicsMat.ConvertTo(intrinsics, DepthType.Cv32F);
             distCoeffsMat.ConvertTo(distCoeffs, DepthType.Cv32F);
         }
-    }
-    public class CorrectedDice
-    {
-        public Mat Mat { get; set; } = new Mat();
-        public VectorOfPoint Contour { get; set; } = new VectorOfPoint();
+
+        /// <summary>
+        /// Resizes a binary Mat to desired size and reapplies Otsu filter to ensure to 'smoothing' appears.
+        /// </summary>
+        /// <param name="frame"></param>
+        /// <param name="newSize"></param>
+        /// <returns>Resized mat</returns>
+        public static Mat ResizeBinaryFrame(Mat frame, int newSize)
+        {
+            Mat resized = new Mat();
+            CvInvoke.Resize(frame, resized, new Size(newSize, newSize));
+
+            Mat binaryFrame = new Mat();
+            CvInvoke.Threshold(resized, binaryFrame, 120, 255, ThresholdType.Otsu);
+
+            return binaryFrame;
+        }
     }
 }
