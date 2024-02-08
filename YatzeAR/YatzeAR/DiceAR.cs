@@ -9,18 +9,20 @@ namespace YatzeAR
     {
         private byte blobColor = 0;
         private Matrix<float>? distCoeffs;
+        private FPSHandler fpsHandler;
         private string? image;
         private Matrix<float>? intrinsics;
         private VideoCapture videoCapture;
+        private bool useCamera;
 
-        public DiceAR(int camIndex = 1, bool colorInvertedDice = false)
+        public DiceAR(bool useCamera = false, int camIndex = 1, int desiredFPS = 30, bool colorInvertedDice = false)
         {
 #if DEBUG
             string currentDir = Directory.GetCurrentDirectory();
-            string[] tmp = Directory.GetFiles(currentDir, "dice4.png");
+            string[] tmp = Directory.GetFiles(currentDir, "dice5.png");
             image = tmp[0];
 #endif
-
+            this.useCamera = useCamera;
             videoCapture = new VideoCapture(camIndex);
 
             if (colorInvertedDice)
@@ -28,16 +30,23 @@ namespace YatzeAR
                 blobColor = 255;
             }
 
+            fpsHandler = new FPSHandler(desiredFPS);
+
             AR.ReadIntrinsicsFromFile(out intrinsics, out distCoeffs);
         }
 
         public override void OnFrame()
         {
+            if (!fpsHandler.ShouldFrameBeRendered()) return;
+
             if (image != null)
             {
                 Mat rawFrame = CvInvoke.Imread(image);
-                //bool grabbed = videoCapture.Read(rawFrame);
-                //if (!grabbed) return;
+                if (useCamera)
+                {
+                    bool grabbed = videoCapture.Read(rawFrame);
+                    if (!grabbed) return;
+                }
 
                 Mat binaryFrame = AR.ConvertToBinaryFrame(rawFrame);
 
@@ -110,23 +119,29 @@ namespace YatzeAR
             return numberOfPips;
         }
 
-        private void ProcessDice(List<Dice> Dices, Mat rawFrame, int calculationSize = 50)
+        /// <summary>
+        /// Count number of pips, display it, and add pip count into Dices list for usage in Yatze logic.
+        /// </summary>
+        /// <param name="Dices"></param>
+        /// <param name="rawFrame"></param>
+        /// <param name="diceSize"></param>
+        private void ProcessDice(List<Dice> Dices, Mat rawFrame, int diceSize = 50)
         {
             foreach (var dice in Dices)
             {
-                Mat binaryFrame = AR.ResizeBinaryFrame(dice.Mat, calculationSize);
+                Mat binaryFrame = AR.ResizeBinaryFrame(dice.Mat, diceSize);
 
                 Image<Gray, byte> binaryImage = binaryFrame.ToImage<Gray, byte>();
 
                 Rectangle boundingRectangle = CvInvoke.BoundingRectangle(dice.Contour);
 
                 // Create a byte array of the appropriate size
-                byte[,] diceArray = new byte[calculationSize, calculationSize];
+                byte[,] diceArray = new byte[diceSize, diceSize];
 
                 // Fill the array with the pixel values from the dice region of the image
-                for (int x = 0; x < calculationSize; x++)
+                for (int x = 0; x < diceSize; x++)
                 {
-                    for (int y = 0; y < calculationSize; y++)
+                    for (int y = 0; y < diceSize; y++)
                     {
                         diceArray[x, y] = binaryImage.Data[y, x, 0];
                     }
