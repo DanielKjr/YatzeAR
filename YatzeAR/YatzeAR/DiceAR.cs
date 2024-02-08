@@ -17,11 +17,12 @@ namespace YatzeAR
 
         public DiceAR(bool useCamera = false, int camIndex = 1, int desiredFPS = 30, bool colorInvertedDice = false)
         {
-#if DEBUG
-            string currentDir = Directory.GetCurrentDirectory();
-            string[] tmp = Directory.GetFiles(currentDir, "dice5.png");
-            image = tmp[0];
-#endif
+            if (!useCamera)
+            {
+                string currentDir = Directory.GetCurrentDirectory();
+                string[] tmp = Directory.GetFiles(currentDir, "dice5.png");
+                image = tmp[0];
+            }
             this.useCamera = useCamera;
             videoCapture = new VideoCapture(camIndex);
 
@@ -35,6 +36,9 @@ namespace YatzeAR
             AR.ReadIntrinsicsFromFile(out intrinsics, out distCoeffs);
         }
 
+        /// <summary>
+        /// Main loop for Dice AR detection and logic.
+        /// </summary>
         public override void OnFrame()
         {
             if (!fpsHandler.ShouldFrameBeRendered()) return;
