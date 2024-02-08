@@ -11,7 +11,7 @@ namespace YatzeAR.YatzyLogik
 	{
 		public string Rule { get; set; }
 		public int MaxPoints { get; set; }
-		private int points = 0;
+		public List<int> ValidDice { get; set; } = new List<int>();
 		public int Points
 		{
 			get { return points; }
@@ -20,13 +20,13 @@ namespace YatzeAR.YatzyLogik
 				points = value > MaxPoints ? MaxPoints : value;
 			}
 		}
-
 		public bool FilledIn { get { return Points != 0; }}
-
-		public YatzyRule(string rule, int maxpoints)
+		private int points = 0;
+		public YatzyRule(string rule, int maxpoints, List<int> validDice)
 		{
 			Rule = rule;
 			MaxPoints = maxpoints;
+			ValidDice = validDice;
 		}
 	}
 }

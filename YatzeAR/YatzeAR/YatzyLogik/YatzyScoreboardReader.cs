@@ -23,8 +23,12 @@ namespace YatzeAR.YatzyLogik
 				
 				while((line = sr.ReadLine()) != null)
 				{
+				
 					string[] content = line.Split(",");
-					rules.Add(new YatzyRule(content[0], Convert.ToInt32(content[1])));
+					string[] validDice = content[2].Split(".");
+					int[]ints = validDice.Select(x => Convert.ToInt32(x)).ToArray();
+				
+					rules.Add(new YatzyRule(content[0], Convert.ToInt32(content[1]), new List<int>(ints)));
 				}
 				sr.Close();
 			}
