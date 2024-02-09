@@ -15,6 +15,12 @@ namespace YatzeAR
 
         }
 
+			var diceAR = new DiceAR(false, 1, 30);
+			diceAR.Run();
+			//ConsoleTurnHandlerDebug();
+		}
+
+
 
 		public static void ConsoleTurnHandlerDebug()
 		{
@@ -30,28 +36,27 @@ namespace YatzeAR
 			users.ForEach(i => i.Rules = YatzyScoreboardReader.GetRules());
 			TurnHandler turnHandler = new TurnHandler(users);
 
-
-			bool gameIsRunning = true;
-			while (gameIsRunning)
+			List<Dice> dice = new List<Dice>
 			{
-				Console.WriteLine("Current User: " + turnHandler.currentUser.Name);
-				int index = 0;
-				turnHandler.currentUser.Rules.ForEach(i =>
-				{
-					Console.WriteLine("Index: "+ index + " " + i.Rule + " Current points " + i.Points);
-					index++;
-
-				});
-				Console.WriteLine("Choose a rule to fill in");
-				int choice = Convert.ToInt32(Console.ReadLine());
-				YatzyRule rule = turnHandler.SelectRule(choice);
-				Console.WriteLine("Enter the result of dice roll");
-				int value = Convert.ToInt32(Console.ReadLine());
-				turnHandler.RegisterResult(rule, value);
-				index = 0;
-				
-				Console.Clear();
+				new Dice(){Number = 1},
+				new Dice(){Number = 1},
+				new Dice(){Number = 1},
+				new Dice(){Number= 2},
+				new Dice(){Number = 2},
+				new Dice(){Number = 2}
+			};
+			
+			if(turnHandler.SubmitDice(dice))
+			{
+				//mellem 1 og 5 terninger, registrerer points og skifter tur
+				Console.WriteLine("Succes");
 			}
+			else
+			{
+				//Forkert antal terninger, gør ingenting - kør detection igen måske
+				Console.WriteLine("Fejl");
+			}
+
 
 		}
 	}
