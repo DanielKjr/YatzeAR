@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -12,7 +13,10 @@ namespace YatzeAR.YatzyLogik
 
 		public List<User> Users { get; set; }
 		public Queue<User> CurrentTurn { get; set; } = new Queue<User>();
+		public YatzyRule CurrentRule { get; set; }
 		public User currentUser { get { return CurrentTurn.First(); } }
+
+		private int ruleIndex = 0;
 
 		public TurnHandler(List<User> users)
 		{
@@ -24,76 +28,95 @@ namespace YatzeAR.YatzyLogik
 				CurrentTurn.Enqueue(user);
 			});
 			Users = users;
-		}
-
-
-		/// <summary>
-		/// Sets the specified rule on the current user to the value
-		/// </summary>
-		/// <param name="rule"></param>
-		/// <param name="temporaryParameter"></param>
-		public void RegisterResult(YatzyRule rule, int temporaryParameter)
-		{
-
-			//TODO mangler hvordan end terning resulaterne blive repræsenteret
-			if(rule != null)
-			{
-				YatzyRule currentRule = currentUser.Rules.Find(x => x.Rule == rule.Rule && !x.FilledIn)!;
-				currentRule.Points = temporaryParameter;
-				User temp = currentUser;
-				CurrentTurn.Dequeue();
-				CurrentTurn.Enqueue(temp);
-			}	
+			CurrentRule = currentUser.Rules.First();
 		}
 
 		/// <summary>
-		/// Returns the rule at said index, if it is not filled in
+		/// Returnere false hvis der er fejl og true hvis det er succesfuldt
 		/// </summary>
-		/// <param name="index"></param>
+		/// <param name="diceRoll"></param>
 		/// <returns></returns>
-		public YatzyRule SelectRule(int index)
+		public bool SubmitDice(List<Dice> diceRoll)
 		{
-			YatzyRule rule = currentUser.Rules[index];
-			if (!rule.FilledIn)
-				return rule;
-			else
-				return null;
-		}
-
-		//if sum of first half of rows is greater than 63, add 50 points
-		public void CalculateBonus()
-		{
-			int sum = 0;
-			
-			foreach (var rule in currentUser.Rules)
+			try
 			{
-				if (rule.Rule == "Sum")
-				{
-					if(sum >= 63)
-						rule.Points = 50;	
-					break;
-				}
-				else
-					sum += rule.Points;
+				CheckIfValidDiceAmount(diceRoll.Count);
+				HandleTurn(diceRoll);
+				return true;
+			}
+			catch
+			{
+				return false;
 			}
 		}
-		//TODO mangler tjek til om alle terninger er ens
-		public void AddYatzyBonus()
+
+		public void HandleTurn(List<Dice> diceRoll)
 		{
-			currentUser.Score += 50;
+			diceRoll.ForEach(i => CurrentRule.Points += AddValidDice(i));
+			EndTurn();
 		}
 
-		public void GetSumOfAlll()
+		public int AddValidDice(Dice dice)
 		{
-			YatzyRule rule = currentUser.Rules.Last();
-
 			int sum = 0;
-			currentUser.Rules.ForEach(i =>
-			{
-				sum += i.Points;
-			});
-			rule.Points = sum;
 
+			if(CurrentRule.ValidDice.Contains(dice.Number))
+				sum += dice.Number;
+
+			return sum;
 		}
+
+	
+		public void EndTurn()
+		{
+			User temp = currentUser;
+			CurrentTurn.Dequeue();
+			CurrentTurn.Enqueue(temp);
+			CurrentRule = currentUser.Rules[ruleIndex];
+			CheckForSpecialRule();
+		}
+
+		public void CheckForSpecialRule()
+		{
+			//hvis reglen er sum tæller den sammen og slutter turen
+			if (CurrentRule.Rule == "Sum" && !CurrentRule.FilledIn)
+			{
+				int points = currentUser.Rules.Where(currentUser => currentUser.FilledIn).Sum(currentUser => currentUser.Points);
+				CurrentRule.Points += points;
+				EndTurn();
+			}
+			//hvis reglen er bonus tjekker den om summen er over 63 og tilføjer 50 point hvis den er
+			if (CurrentRule.Rule == "Bonus" && !CurrentRule.FilledIn)
+			{
+				YatzyRule rule = currentUser.Rules.Where(x => x.Rule == "Sum").First();
+				if (rule.Points >= 63)
+					CurrentRule.Points += 50;
+				EndTurn();
+			}
+			//hvis den nuværende user er sidst på listen af users, og altså er sidst i rækken, skiften ruleIndex så den næste bruger har ny regel
+			if (currentUser == Users.Last())
+			{
+				ruleIndex++;
+			}
+		}
+
+		public void CheckIfValidDiceAmount(int count)
+		{
+			if(count <= 0 || count > 5)
+				throw new Exception("Invalid dice count");
+		}
+
+		public void AddDebugValues()
+		{
+
+            for (int x = 0; x < Users.Count; x++)
+            {
+				for (int i = 0; i < 6; i++)
+				{
+					Users[x].Rules[i].Points = currentUser.Rules[i].MaxPoints;
+				}
+			}
+            
+        }
 	}
 }
