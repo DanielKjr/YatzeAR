@@ -8,9 +8,7 @@ namespace YatzeAR.YatzyLogik
 {
 	public static class YatzyScoreboardReader
 	{
-		
-
-
+				
 		public static List<YatzyRule> GetRules()
 		{
 			List<YatzyRule> rules = new List<YatzyRule>();
@@ -32,8 +30,8 @@ namespace YatzeAR.YatzyLogik
 				}
 				sr.Close();
 			}
-			catch{ 
-			
+			catch (Exception ex){
+				Console.WriteLine(ex);
 			}
 			return rules;
 		}
