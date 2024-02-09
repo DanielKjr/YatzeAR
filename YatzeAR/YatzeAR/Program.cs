@@ -8,17 +8,15 @@ namespace YatzeAR
 		static void Main(string[] args)
 		{
 			var playerAR = new PlayerAR();
-            playerAR.Run();
-			var diceAR = new DiceAR(false,1,30);
-            diceAR.Run();
-            //ConsoleTurnHandlerDebug();
-
-        }
-
+			playerAR.Run();
 			var diceAR = new DiceAR(false, 1, 30);
 			diceAR.Run();
 			//ConsoleTurnHandlerDebug();
+
 		}
+
+
+
 
 
 
@@ -45,8 +43,8 @@ namespace YatzeAR
 				new Dice(){Number = 2},
 				new Dice(){Number = 2}
 			};
-			
-			if(turnHandler.SubmitDice(dice))
+
+			if (turnHandler.SubmitDice(dice))
 			{
 				//mellem 1 og 5 terninger, registrerer points og skifter tur
 				Console.WriteLine("Succes");
