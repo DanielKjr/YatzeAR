@@ -19,7 +19,7 @@ namespace YatzeAR
         {
 #if DEBUG
             string currentDir = Directory.GetCurrentDirectory();
-            string[] tmp = Directory.GetFiles(currentDir, "dice5.png");
+            string[] tmp = Directory.GetFiles(currentDir, "dice40.png");
             image = tmp[0];
 #endif
             this.useCamera = useCamera;

@@ -1,4 +1,5 @@
-﻿using YatzeAR.YatzyLogik;
+﻿using System.Drawing;
+using YatzeAR.YatzyLogik;
 
 namespace YatzeAR
 {
@@ -7,9 +8,12 @@ namespace YatzeAR
 		static void Main(string[] args)
 		{
 			var diceAR = new DiceAR(false,1,30);
-            diceAR.Run();
-			//ConsoleTurnHandlerDebug();
-		}
+            //diceAR.Run();
+			var playerAR = new PlayerAR();
+            playerAR.Run();
+            //ConsoleTurnHandlerDebug();
+
+        }
 
 
 		public static void ConsoleTurnHandlerDebug()
