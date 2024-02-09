@@ -139,6 +139,35 @@ namespace YatzeAR
             return dices;
         }
 
+        public static VectorOfVectorOfPoint GetValidContours(VectorOfVectorOfPoint contours)
+        {
+            VectorOfVectorOfPoint validContours = new VectorOfVectorOfPoint();
+
+
+            for (int i = 0; i < contours.Size; i++)
+            {
+                VectorOfPoint cont = contours[i];
+
+                VectorOfPoint approxPoly = new VectorOfPoint();
+                CvInvoke.ApproxPolyDP(cont, approxPoly, 8, true);
+
+                if (approxPoly.Size == 4)
+                {
+                    double contourLenght = CvInvoke.ArcLength(approxPoly, true);
+                    double contourArea = CvInvoke.ContourArea(approxPoly, true);
+
+                    //TODO skal måske også tjekkes
+                    bool validSize = contourLenght > 80 && contourLenght < 700;
+                    bool validOrientation = contourArea < 0;
+
+                    if (validSize && validOrientation)
+                        validContours.Push(approxPoly);
+                }
+
+            }
+            return validContours;
+        }
+
         /// <summary>
         /// Reads camera specific intrinsics data from file.
         /// </summary>
