@@ -8,6 +8,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace YatzeAR
 {
@@ -21,7 +22,7 @@ namespace YatzeAR
 
         public PlayerAR()
         {
-            //vCap = new VideoCapture(0);
+            vCap = new VideoCapture(0);
             LoadImg();
         }
 
@@ -55,26 +56,22 @@ namespace YatzeAR
 
         public override void OnFrame()
         {
+            if (_image != null)
+            {
             Mat frame = CvInvoke.Imread(_image);
-            //CvInvoke.Imshow("Player", frame);
-
+            
             Mat grayPlayer = new Mat();
             CvInvoke.CvtColor(frame, grayPlayer, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
-            //CvInvoke.Imshow("grayPlayer", grayPlayer);
-
+            
             Mat binaryPlayer = new Mat();
             CvInvoke.Threshold(grayPlayer, binaryPlayer, 0, 255, ThresholdType.Otsu);
-            CvInvoke.Imshow("binaryPlayer", binaryPlayer);
-
+           
             VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
             CvInvoke.FindContours(binaryPlayer, contours, null, RetrType.List, ChainApproxMethod.ChainApproxSimple);
-            //CvInvoke.DrawContours(frame, contours, -1, new MCvScalar(255, 0, 0));
-            //CvInvoke.Imshow("contous", frame);
-
+            
             VectorOfVectorOfPoint validContours = GetValidContours(contours);
             CvInvoke.DrawContours(frame, validContours, -1, new MCvScalar(255, 0, 0));
-            CvInvoke.Imshow("validPlayerContous", frame);
-
+            
             VectorOfMat undistortedPlayers = UndistortPlayerFromContours(frame, validContours);
 
             for (int i = 0; i < undistortedPlayers.Size; i++)
@@ -89,13 +86,13 @@ namespace YatzeAR
                 if (!success)
                     continue;
 
-               Matrix<float> originScreen = new Matrix<float>(new float[] { .5f, .5f, 0f, 1 });
+                Matrix<float> originScreen = new Matrix<float>(new float[] { .5f, .5f, 0f, 1 });
 
                 CvInvoke.PutText(frame, playerName, WorldToScreen(originScreen, worldToScreenMatrix), FontFace.HersheyPlain, 1d, new MCvScalar(255, 0, 255), 1);
-
             }
 
             CvInvoke.Imshow("PlayersNames", frame);
+            }
 
         }
 
