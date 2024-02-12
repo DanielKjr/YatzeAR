@@ -1,5 +1,5 @@
 ﻿using System.Drawing;
-using YatzeAR.Configurator;
+using YatzeAR.Configuration;
 using YatzeAR.Marker;
 using YatzeAR.YatzyLogik;
 
@@ -9,7 +9,7 @@ namespace YatzeAR
 	{
 		static void Main(string[] args)
 		{
-			var users = GameConfigurator.Configurate();
+			var users = Configurator.Configurate();
 
 			
 
