@@ -1,76 +1,25 @@
-﻿using Emgu.CV;
+﻿using System.Drawing;
+using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Net.Mime.MediaTypeNames;
+using YatzeAR.Marker;
+using YatzeAR.YatzyLogik;
 
 namespace YatzeAR
 {
     public class PlayerAR : FrameLoop
     {
-        private VideoCapture vCap;
+        public List<User> FoundPlayerMarkers = new List<User>();
         private string? _image;
-
-        private Matrix<float>? intrinsics;
         private Matrix<float>? distCoeffs;
+        private Matrix<float>? intrinsics;
+        private VideoCapture vCap;
 
         public PlayerAR()
         {
             vCap = new VideoCapture(0);
             LoadImg();
-        }
-
-        public void LoadImg()
-        {
-            string currentDir = Directory.GetCurrentDirectory();
-            string[] tmp = Directory.GetFiles(currentDir, "players_png.png");
-            _image = tmp[0];
-            AR.ReadIntrinsicsFromFile(out intrinsics, out distCoeffs);
-        }
-
-       
-        public override void OnFrame()
-        {
-            if (_image != null)
-            {
-            Mat frame = CvInvoke.Imread(_image);
-                   
-            Mat binaryPlayer = AR.ConvertToBinaryFrame(frame);
-           
-            VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
-            CvInvoke.FindContours(binaryPlayer, contours, null, RetrType.List, ChainApproxMethod.ChainApproxSimple);
-            
-            VectorOfVectorOfPoint validContours = GetValidContours(contours);
-            CvInvoke.DrawContours(frame, validContours, -1, new MCvScalar(255, 0, 0));
-            
-            VectorOfMat undistortedPlayers = UndistortPlayerFromContours(frame, validContours);
-
-            for (int i = 0; i < undistortedPlayers.Size; i++)
-            {
-                byte[,] centerValues = GetPlayerCenterValues(undistortedPlayers[i]);
-
-                bool diceFound = Player.TryFindPlayer(centerValues, out string playerName, out int orientIndex);
-                if (!diceFound)
-                    continue;
-
-                bool success = FindPlayerPerspectiveMatrix(orientIndex, validContours[i], out Matrix<float> worldToScreenMatrix);
-                if (!success)
-                    continue;
-
-                Matrix<float> originScreen = new Matrix<float>(new float[] { .5f, .5f, 0f, 1 });
-
-                CvInvoke.PutText(frame, playerName, AR.WorldToScreen(originScreen, worldToScreenMatrix), FontFace.HersheyPlain, 1d, new MCvScalar(255, 0, 255), 1);
-            }
-
-            CvInvoke.Imshow("PlayersNames", frame);
-            }
-
         }
 
         public static VectorOfVectorOfPoint GetValidContours(VectorOfVectorOfPoint contours)
@@ -102,21 +51,53 @@ namespace YatzeAR
             return validContours;
         }
 
-        private VectorOfMat UndistortPlayerFromContours(Mat image, VectorOfVectorOfPoint validContours)
+        public void LoadImg()
         {
-            VectorOfMat undistortedPlayers = new VectorOfMat();
-            for (int i = 0; i < validContours.Size; i++)
+            string currentDir = Directory.GetCurrentDirectory();
+            string[] tmp = Directory.GetFiles(currentDir, "players_png.png");
+            _image = tmp[0];
+            AR.ReadIntrinsicsFromFile(out intrinsics, out distCoeffs);
+        }
+
+        public override void OnFrame()
+        {
+            if (_image != null)
             {
-                VectorOfPoint contour = validContours[i];
-                Mat homography = CvInvoke.FindHomography(contour, Player.PLAYER_SCREEN_COORDS, RobustEstimationAlgorithm.Ransac);
+                FoundPlayerMarkers.Clear();
 
-                Mat playerContent = new Mat();
-                CvInvoke.WarpPerspective(image, playerContent, homography, new Size(Player.WARPED_PLAYER_SIZE, Player.WARPED_PLAYER_SIZE));
+                Mat frame = CvInvoke.Imread(_image);
 
-                undistortedPlayers.Push(playerContent);
+                Mat binaryPlayer = AR.ConvertToBinaryFrame(frame);
+
+                VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
+                CvInvoke.FindContours(binaryPlayer, contours, null, RetrType.List, ChainApproxMethod.ChainApproxSimple);
+
+                VectorOfVectorOfPoint validContours = GetValidContours(contours);
+                CvInvoke.DrawContours(frame, validContours, -1, new MCvScalar(255, 0, 0));
+
+                VectorOfMat undistortedPlayers = UndistortPlayerFromContours(frame, validContours);
+
+                for (int i = 0; i < undistortedPlayers.Size; i++)
+                {
+                    byte[,] centerValues = GetPlayerCenterValues(undistortedPlayers[i]);
+
+                    bool diceFound = Player.TryFindPlayer(centerValues, out string playerName, out int orientIndex);
+                    if (!diceFound)
+                        continue;
+
+                    bool success = FindPlayerPerspectiveMatrix(orientIndex, validContours[i], out Matrix<float> worldToScreenMatrix);
+                    if (!success)
+                        continue;
+
+                    FoundPlayerMarkers.Add(new User() { Marker = playerName, Contour = validContours[i] });
+
+                    Matrix<float> originScreen = new Matrix<float>(new float[] { .5f, .5f, 0f, 1 });
+
+                    CvInvoke.PutText(frame, playerName, AR.WorldToScreen(originScreen, worldToScreenMatrix), FontFace.HersheyPlain, 1d, new MCvScalar(255, 0, 255), 1);
+                }
+
+                CvInvoke.Imshow("PlayersNames", frame);
             }
-
-            return undistortedPlayers;
         }
 
         private static byte[,] GetPlayerCenterValues(Mat warpedPlayer)
@@ -177,6 +158,21 @@ namespace YatzeAR
             return true;
         }
 
-       
+        private VectorOfMat UndistortPlayerFromContours(Mat image, VectorOfVectorOfPoint validContours)
+        {
+            VectorOfMat undistortedPlayers = new VectorOfMat();
+            for (int i = 0; i < validContours.Size; i++)
+            {
+                VectorOfPoint contour = validContours[i];
+                Mat homography = CvInvoke.FindHomography(contour, Player.PLAYER_SCREEN_COORDS, RobustEstimationAlgorithm.Ransac);
+
+                Mat playerContent = new Mat();
+                CvInvoke.WarpPerspective(image, playerContent, homography, new Size(Player.WARPED_PLAYER_SIZE, Player.WARPED_PLAYER_SIZE));
+
+                undistortedPlayers.Push(playerContent);
+            }
+
+            return undistortedPlayers;
+        }
     }
 }
