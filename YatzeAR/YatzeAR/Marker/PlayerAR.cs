@@ -59,6 +59,25 @@ namespace YatzeAR
             AR.ReadIntrinsicsFromFile(out intrinsics, out distCoeffs);
         }
 
+        public List<User> UpdateUserContour(List<User> users)
+        {
+            OnFrame();
+
+            foreach (var user in users)
+            {
+                foreach (var found in FoundPlayerMarkers)
+                {
+                    if(user.Marker == found.Marker)
+                    {
+                        user.Contour = found.Contour;
+                        break;
+                    }
+                }
+            }
+
+            return users;
+        }
+
         public override void OnFrame()
         {
             if (_image != null)

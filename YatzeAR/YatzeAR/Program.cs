@@ -11,10 +11,10 @@ namespace YatzeAR
 		{
 			var users = GameConfigurator.Configurate();
 
-			//TODO: Update users.Contour within main game loop
+			
 
-			var playerAR = new PlayerAR();
-			playerAR.Run();
+			//var playerAR = new PlayerAR();
+			//playerAR.Run();
 
 			var diceAR = new DiceAR(false, 1, 30);
 			diceAR.Run();
