@@ -1,23 +1,26 @@
 ﻿using Emgu.CV;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace YatzeAR
 {
     public abstract class FrameLoop
     {
+        private bool shouldRun;
+
+        public abstract void OnFrame();
+
         public void Run()
         {
-            while (true)
+            shouldRun = true;
+            while (shouldRun)
             {
                 OnFrame();
                 CvInvoke.WaitKey(1);
             }
         }
 
-        public abstract void OnFrame();
+        public void Stop()
+        {
+            shouldRun = false;
+        }
     }
 }
