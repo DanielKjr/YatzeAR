@@ -1,11 +1,9 @@
-﻿using YatzeAR.Marker;
-using YatzeAR.YatzyLogik;
+﻿using YatzeAR.YatzyLogik;
 
 namespace YatzeAR.Configurator
 {
     public class GameConfigurator
     {
-        private static bool allowUndetectedDialog = false;
         private static List<string> configuredMarkers = new List<string>();
 
         /// <summary>
@@ -14,6 +12,7 @@ namespace YatzeAR.Configurator
         /// <returns>List of configured users</returns>
         public static List<User> Configurate()
         {
+            bool allowUndetectedDialog = false;
             List<User> users = new List<User>();
             bool configurating = true;
             PlayerAR markerDetection = new PlayerAR();
@@ -26,21 +25,18 @@ namespace YatzeAR.Configurator
 
                 if (foundMarkerNames.Count > 0)
                 {
-                    users.Add(ConfigureMarker(foundMarkerNames, markerDetection));
+                    users.Add(ConfigureMarker(foundMarkerNames, markerDetection, out allowUndetectedDialog));
                 }
-                else
+                else if (allowUndetectedDialog)
                 {
-                    if (allowUndetectedDialog)
-                    {
-                        configurating = ContinueOrStopConfiguring();
-                    }
+                    configurating = ContinueOrStopConfiguring(out allowUndetectedDialog);
                 }
             }
 
             return users;
         }
 
-        public static User ConfigureMarker(List<string> foundMarkers, PlayerAR markerDetection)
+        public static User ConfigureMarker(List<string> foundMarkers, PlayerAR markerDetection, out bool allowUndetectedDialog)
         {
             Console.Write("Input name for found marker: ");
             string inputName = Console.ReadLine() ?? "";
@@ -80,10 +76,8 @@ namespace YatzeAR.Configurator
             return filter;
         }
 
-        private static bool ContinueOrStopConfiguring()
+        private static bool ContinueOrStopConfiguring(out bool allowUndetectedDialog)
         {
-            bool temp = true;
-
             Console.WriteLine("\nPress 'SPACE' to stop configuring players");
             Console.WriteLine("Press 'ANY' to continue adding players - remember to add new marker!\n\n");
 
@@ -91,16 +85,18 @@ namespace YatzeAR.Configurator
 
             if (key.KeyChar == (char)ConsoleKey.Spacebar)
             {
-                temp = false;
+                allowUndetectedDialog = false;
+
+                return false;
             }
             else
             {
+                allowUndetectedDialog = false;
+
                 Console.WriteLine("\n\nSearching for new marker!\n\n");
+
+                return true;
             }
-
-            allowUndetectedDialog = false;
-
-            return temp;
         }
     }
 }

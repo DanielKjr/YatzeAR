@@ -59,25 +59,6 @@ namespace YatzeAR
             AR.ReadIntrinsicsFromFile(out intrinsics, out distCoeffs);
         }
 
-        public List<User> UpdateUserContour(List<User> users)
-        {
-            OnFrame();
-
-            foreach (var user in users)
-            {
-                foreach (var found in FoundPlayerMarkers)
-                {
-                    if(user.Marker == found.Marker)
-                    {
-                        user.Contour = found.Contour;
-                        break;
-                    }
-                }
-            }
-
-            return users;
-        }
-
         public override void OnFrame()
         {
             if (_image != null)
@@ -115,6 +96,25 @@ namespace YatzeAR
                     CvInvoke.PutText(frame, playerName, AR.WorldToScreen(originScreen, worldToScreenMatrix), FontFace.HersheyPlain, 1d, new MCvScalar(255, 0, 255), 1);
                 }
             }
+        }
+
+        public List<User> UpdateUserContour(List<User> users)
+        {
+            OnFrame();
+
+            foreach (var found in FoundPlayerMarkers)
+            {
+                foreach (var user in users)
+                {
+                    if (user.Marker == found.Marker)
+                    {
+                        user.Contour = found.Contour;
+                        break;
+                    }
+                }
+            }
+
+            return users;
         }
 
         private static byte[,] GetPlayerCenterValues(Mat warpedPlayer)
