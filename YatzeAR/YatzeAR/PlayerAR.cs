@@ -151,7 +151,7 @@ namespace YatzeAR
         {
             worldToScreenMatrix = null;
 
-            MCvPoint3D32f[] objOrient = Player.PLAYER_WORLD_COORDS[orientIndex];
+            MCvPoint3D32f[] objOrient = AR.WorldCoors[orientIndex];
             PointF[] contourPoints = contour.ToArray().Select(x => new PointF(x.X, x.Y)).ToArray();
 
             Matrix<float> rotationVector = new Matrix<float>(3, 1);

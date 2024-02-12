@@ -216,5 +216,32 @@ namespace YatzeAR
             return new Point((int)(result[0, 0] / result[2, 0]), (int)(result[1, 0] / result[2, 0]));
         }
 
+        public static readonly MCvPoint3D32f[][] WorldCoors = new[] {
+            new MCvPoint3D32f[]{
+                new MCvPoint3D32f(0, 0, 0),
+                new MCvPoint3D32f(1, 0, 0),
+                new MCvPoint3D32f(1, 1, 0),
+                new MCvPoint3D32f(0, 1, 0)
+            },
+            new MCvPoint3D32f[]{
+                new MCvPoint3D32f(1, 0, 0),
+                new MCvPoint3D32f(1, 1, 0),
+                new MCvPoint3D32f(0, 1, 0),
+                new MCvPoint3D32f(0, 0, 0)
+            },
+            new MCvPoint3D32f[]{
+                new MCvPoint3D32f(1, 1, 0),
+                new MCvPoint3D32f(0, 1, 0),
+                new MCvPoint3D32f(0, 0, 0),
+                new MCvPoint3D32f(1, 0, 0)
+            },
+            new MCvPoint3D32f[]{
+                new MCvPoint3D32f(0, 1, 0),
+                new MCvPoint3D32f(0, 0, 0),
+                new MCvPoint3D32f(1, 0, 0),
+                new MCvPoint3D32f(1, 1, 0)
+            }
+        };
+
     }
 }
