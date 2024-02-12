@@ -1,25 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Emgu.CV.Util;
 
 namespace YatzeAR.YatzyLogik
 {
-	public class User
-	{
-		public string Name { get; set; }
-
-		public int TurnOrder { get; set; }
-
-		public int Score { get; set; }
-
-		public List<YatzyRule> Rules { get; set; } = new List<YatzyRule>();
-
-
-        public User(string userName)
-        {
-            Name = userName;
-        }
+    public class User
+    {
+        public VectorOfPoint Contour { get; set; } = new VectorOfPoint();
+        public string Marker { get; set; } = default!;
+        public string Name { get; set; } = default!;
+        public List<YatzyRule> Rules { get; set; } = new List<YatzyRule>();
+        public int Score { get; set; }
+        public int TurnOrder { get; set; }
     }
 }

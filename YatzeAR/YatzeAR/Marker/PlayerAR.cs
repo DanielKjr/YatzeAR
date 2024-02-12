@@ -8,12 +8,14 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using YatzeAR.YatzyLogik;
 using static System.Net.Mime.MediaTypeNames;
 
-namespace YatzeAR
+namespace YatzeAR.Marker
 {
     public class PlayerAR : FrameLoop
     {
+        public List<User> FoundPlayerMarkers { get; } = new List<User>();
         private VideoCapture vCap;
         private string? _image;
 
@@ -31,67 +33,49 @@ namespace YatzeAR
             string currentDir = Directory.GetCurrentDirectory();
             string[] tmp = Directory.GetFiles(currentDir, "players_png.png");
             _image = tmp[0];
-            ReadIntrinsicsFromFile(out intrinsics, out distCoeffs);
-        }
-
-        public static void ReadIntrinsicsFromFile(out Matrix<float> intrinsics, out Matrix<float> distCoeffs)
-        {
-            Mat intrinsicsMat = new Mat();
-            Mat distCoeffsMat = new Mat();
-
-            using FileStorage fs = new FileStorage("intrinsics.json", FileStorage.Mode.Read);
-
-            FileNode intrinsicsNode = fs.GetNode("Intrinsics");
-            FileNode distCoeffsNode = fs.GetNode("DistCoeffs");
-
-            intrinsicsNode.ReadMat(intrinsicsMat);
-            distCoeffsNode.ReadMat(distCoeffsMat);
-
-            intrinsics = new Matrix<float>(3, 3);
-            distCoeffs = new Matrix<float>(1, 5);
-
-            intrinsicsMat.ConvertTo(intrinsics, DepthType.Cv32F);
-            distCoeffsMat.ConvertTo(distCoeffs, DepthType.Cv32F);
+            AR.ReadIntrinsicsFromFile(out intrinsics, out distCoeffs);
         }
 
         public override void OnFrame()
         {
             if (_image != null)
             {
-            Mat frame = CvInvoke.Imread(_image);
-            
-            Mat grayPlayer = new Mat();
-            CvInvoke.CvtColor(frame, grayPlayer, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
-            
-            Mat binaryPlayer = new Mat();
-            CvInvoke.Threshold(grayPlayer, binaryPlayer, 0, 255, ThresholdType.Otsu);
-           
-            VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
-            CvInvoke.FindContours(binaryPlayer, contours, null, RetrType.List, ChainApproxMethod.ChainApproxSimple);
-            
-            VectorOfVectorOfPoint validContours = GetValidContours(contours);
-            CvInvoke.DrawContours(frame, validContours, -1, new MCvScalar(255, 0, 0));
-            
-            VectorOfMat undistortedPlayers = UndistortPlayerFromContours(frame, validContours);
+                FoundPlayerMarkers.Clear();
 
-            for (int i = 0; i < undistortedPlayers.Size; i++)
-            {
-                byte[,] centerValues = GetPlayerCenterValues(undistortedPlayers[i]);
+                Mat frame = CvInvoke.Imread(_image);
 
-                bool diceFound = Player.TryFindPlayer(centerValues, out string playerName, out int orientIndex);
-                if (!diceFound)
-                    continue;
+                Mat grayPlayer = new Mat();
+                CvInvoke.CvtColor(frame, grayPlayer, ColorConversion.Bgr2Gray);
 
-                bool success = FindPlayerPerspectiveMatrix(orientIndex, validContours[i], out Matrix<float> worldToScreenMatrix);
-                if (!success)
-                    continue;
+                Mat binaryPlayer = new Mat();
+                CvInvoke.Threshold(grayPlayer, binaryPlayer, 0, 255, ThresholdType.Otsu);
 
-                Matrix<float> originScreen = new Matrix<float>(new float[] { .5f, .5f, 0f, 1 });
+                VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
+                CvInvoke.FindContours(binaryPlayer, contours, null, RetrType.List, ChainApproxMethod.ChainApproxSimple);
 
-                CvInvoke.PutText(frame, playerName, WorldToScreen(originScreen, worldToScreenMatrix), FontFace.HersheyPlain, 1d, new MCvScalar(255, 0, 255), 1);
-            }
+                VectorOfVectorOfPoint validContours = GetValidContours(contours);
+                CvInvoke.DrawContours(frame, validContours, -1, new MCvScalar(255, 0, 0));
 
-            CvInvoke.Imshow("PlayersNames", frame);
+                VectorOfMat undistortedPlayers = UndistortPlayerFromContours(frame, validContours);
+
+                for (int i = 0; i < undistortedPlayers.Size; i++)
+                {
+                    byte[,] centerValues = GetPlayerCenterValues(undistortedPlayers[i]);
+
+                    bool playerFound = Player.TryFindPlayer(centerValues, out string playerMarkerName, out int orientIndex);
+                    if (!playerFound)
+                        continue;
+
+                    bool success = FindPlayerPerspectiveMatrix(orientIndex, validContours[i], out Matrix<float> worldToScreenMatrix);
+                    if (!success)
+                        continue;
+
+                    FoundPlayerMarkers.Add(new User() { Marker = playerMarkerName, Contour = validContours[i] });
+
+                    Matrix<float> originScreen = new Matrix<float>(new float[] { .5f, .5f, 0f, 1 });
+
+                    CvInvoke.PutText(frame, playerMarkerName, WorldToScreen(originScreen, worldToScreenMatrix), FontFace.HersheyPlain, 1d, new MCvScalar(255, 0, 255), 1);
+                }
             }
 
         }
@@ -159,8 +143,8 @@ namespace YatzeAR
                 for (int x = 0; x < Player.PLAYER_GRID_COUNT; x++)
                 {
                     byte[] centerValue = binaryPlayer.GetRawData(new[] {
-                            (x * gridSize) + halfGridSize,
-                            (y * gridSize) + halfGridSize
+                            x * gridSize + halfGridSize,
+                            y * gridSize + halfGridSize
                         });
 
                     centerValues[x, y] = centerValue[0];
@@ -200,7 +184,7 @@ namespace YatzeAR
             return true;
         }
 
-       
+
         public static Point WorldToScreen(Matrix<float> worldPoint, Matrix<float> projection)
         {
             Matrix<float> result = projection * worldPoint;

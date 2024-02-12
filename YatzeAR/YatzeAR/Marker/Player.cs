@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace YatzeAR
+namespace YatzeAR.Marker
 {
     internal class Player
     {
@@ -136,13 +136,13 @@ namespace YatzeAR
             orientation = -1;
             playerName = "";
 
-            foreach (Player md in playerList)
+            foreach (Player player in playerList)
             {
-                orientation = md.getPlayerOrientation(playerData);
+                orientation = player.getPlayerOrientation(playerData);
                 if (orientation == -1)
                     continue;
 
-                playerName = md.name;
+                playerName = player.name;
                 return true;
             }
 
