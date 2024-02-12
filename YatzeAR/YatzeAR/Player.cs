@@ -23,33 +23,6 @@ namespace YatzeAR
             new Point(0, WARPED_PLAYER_SIZE)
         });
 
-        public static readonly MCvPoint3D32f[][] PLAYER_WORLD_COORDS = new[] {
-            new MCvPoint3D32f[]{
-                new MCvPoint3D32f(0, 0, 0),
-                new MCvPoint3D32f(1, 0, 0),
-                new MCvPoint3D32f(1, 1, 0),
-                new MCvPoint3D32f(0, 1, 0)
-            },
-            new MCvPoint3D32f[]{
-                new MCvPoint3D32f(1, 0, 0),
-                new MCvPoint3D32f(1, 1, 0),
-                new MCvPoint3D32f(0, 1, 0),
-                new MCvPoint3D32f(0, 0, 0)
-            },
-            new MCvPoint3D32f[]{
-                new MCvPoint3D32f(1, 1, 0),
-                new MCvPoint3D32f(0, 1, 0),
-                new MCvPoint3D32f(0, 0, 0),
-                new MCvPoint3D32f(1, 0, 0)
-            },
-            new MCvPoint3D32f[]{
-                new MCvPoint3D32f(0, 1, 0),
-                new MCvPoint3D32f(0, 0, 0),
-                new MCvPoint3D32f(1, 0, 0),
-                new MCvPoint3D32f(1, 1, 0)
-            }
-        };
-
         private static Player[] playerList = new[]
         {
             new Player("player1", new byte[,] {
