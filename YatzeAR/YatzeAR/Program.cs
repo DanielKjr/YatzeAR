@@ -8,18 +8,12 @@ namespace YatzeAR
 		static void Main(string[] args)
 		{
 			var playerAR = new PlayerAR();
-            playerAR.Run();
-			var diceAR = new DiceAR(false,1,30);
-            diceAR.Run();
-            //ConsoleTurnHandlerDebug();
-
-        }
-
-			var diceAR = new DiceAR(false, 1, 30);
-			diceAR.Run();
+			playerAR.Run();
+			//var diceAR = new DiceAR(false,1,30);
+			//         diceAR.Run();
 			//ConsoleTurnHandlerDebug();
-		}
 
+		}
 
 
 		public static void ConsoleTurnHandlerDebug()
@@ -42,8 +36,7 @@ namespace YatzeAR
 				new Dice(){Number = 1},
 				new Dice(){Number = 1},
 				new Dice(){Number= 2},
-				new Dice(){Number = 2},
-				new Dice(){Number = 2}
+				new Dice(){Number = 2},	
 			};
 			
 			if(turnHandler.SubmitDice(dice))
