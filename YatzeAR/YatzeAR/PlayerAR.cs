@@ -31,40 +31,17 @@ namespace YatzeAR
             string currentDir = Directory.GetCurrentDirectory();
             string[] tmp = Directory.GetFiles(currentDir, "players_png.png");
             _image = tmp[0];
-            ReadIntrinsicsFromFile(out intrinsics, out distCoeffs);
+            AR.ReadIntrinsicsFromFile(out intrinsics, out distCoeffs);
         }
 
-        public static void ReadIntrinsicsFromFile(out Matrix<float> intrinsics, out Matrix<float> distCoeffs)
-        {
-            Mat intrinsicsMat = new Mat();
-            Mat distCoeffsMat = new Mat();
-
-            using FileStorage fs = new FileStorage("intrinsics.json", FileStorage.Mode.Read);
-
-            FileNode intrinsicsNode = fs.GetNode("Intrinsics");
-            FileNode distCoeffsNode = fs.GetNode("DistCoeffs");
-
-            intrinsicsNode.ReadMat(intrinsicsMat);
-            distCoeffsNode.ReadMat(distCoeffsMat);
-
-            intrinsics = new Matrix<float>(3, 3);
-            distCoeffs = new Matrix<float>(1, 5);
-
-            intrinsicsMat.ConvertTo(intrinsics, DepthType.Cv32F);
-            distCoeffsMat.ConvertTo(distCoeffs, DepthType.Cv32F);
-        }
-
+       
         public override void OnFrame()
         {
             if (_image != null)
             {
             Mat frame = CvInvoke.Imread(_image);
-            
-            Mat grayPlayer = new Mat();
-            CvInvoke.CvtColor(frame, grayPlayer, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
-            
-            Mat binaryPlayer = new Mat();
-            CvInvoke.Threshold(grayPlayer, binaryPlayer, 0, 255, ThresholdType.Otsu);
+                   
+            Mat binaryPlayer = AR.ConvertToBinaryFrame(frame);
            
             VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
             CvInvoke.FindContours(binaryPlayer, contours, null, RetrType.List, ChainApproxMethod.ChainApproxSimple);
@@ -88,7 +65,7 @@ namespace YatzeAR
 
                 Matrix<float> originScreen = new Matrix<float>(new float[] { .5f, .5f, 0f, 1 });
 
-                CvInvoke.PutText(frame, playerName, WorldToScreen(originScreen, worldToScreenMatrix), FontFace.HersheyPlain, 1d, new MCvScalar(255, 0, 255), 1);
+                CvInvoke.PutText(frame, playerName, AR.WorldToScreen(originScreen, worldToScreenMatrix), FontFace.HersheyPlain, 1d, new MCvScalar(255, 0, 255), 1);
             }
 
             CvInvoke.Imshow("PlayersNames", frame);
@@ -201,11 +178,5 @@ namespace YatzeAR
         }
 
        
-        public static Point WorldToScreen(Matrix<float> worldPoint, Matrix<float> projection)
-        {
-            Matrix<float> result = projection * worldPoint;
-            return new Point((int)(result[0, 0] / result[2, 0]), (int)(result[1, 0] / result[2, 0]));
-        }
-
     }
 }

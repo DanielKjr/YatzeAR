@@ -9,12 +9,15 @@ namespace YatzeAR
 		{
 			var playerAR = new PlayerAR();
 			playerAR.Run();
+
 			var diceAR = new DiceAR(false, 1, 30);
 			diceAR.Run();
 			//ConsoleTurnHandlerDebug();
 
 		}
 
+
+		
 
 
 
@@ -40,8 +43,7 @@ namespace YatzeAR
 				new Dice(){Number = 1},
 				new Dice(){Number = 1},
 				new Dice(){Number= 2},
-				new Dice(){Number = 2},
-				new Dice(){Number = 2}
+				new Dice(){Number = 2},	
 			};
 
 			if (turnHandler.SubmitDice(dice))

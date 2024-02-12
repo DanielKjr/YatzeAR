@@ -16,6 +16,8 @@ namespace YatzeAR.YatzyLogik
 
 		public List<YatzyRule> Rules { get; set; } = new List<YatzyRule>();
 
+		public List<PlayerAR> FindedPlayers { get; set; } = new List<PlayerAR>();
+
 
         public User(string userName)
         {

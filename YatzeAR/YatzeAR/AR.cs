@@ -209,5 +209,12 @@ namespace YatzeAR
 
             return binaryFrame;
         }
+
+        public static Point WorldToScreen(Matrix<float> worldPoint, Matrix<float> projection)
+        {
+            Matrix<float> result = projection * worldPoint;
+            return new Point((int)(result[0, 0] / result[2, 0]), (int)(result[1, 0] / result[2, 0]));
+        }
+
     }
 }
