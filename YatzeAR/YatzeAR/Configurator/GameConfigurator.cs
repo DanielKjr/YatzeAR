@@ -29,14 +29,21 @@ namespace YatzeAR.Configurator
                 }
                 else if (allowUndetectedDialog)
                 {
-                    configurating = ContinueOrStopConfiguring(out allowUndetectedDialog);
+                    configurating = ContinueConfigurating(out allowUndetectedDialog);
                 }
             }
 
             return users;
         }
 
-        public static User ConfigureMarker(List<string> foundMarkers, PlayerAR markerDetection, out bool allowUndetectedDialog)
+        /// <summary>
+        /// Add name unto existing marker and remove from unconfigured list
+        /// </summary>
+        /// <param name="foundMarkers"></param>
+        /// <param name="markerDetection"></param>
+        /// <param name="allowUndetectedDialog"></param>
+        /// <returns></returns>
+        private static User ConfigureMarker(List<string> foundMarkers, PlayerAR markerDetection, out bool allowUndetectedDialog)
         {
             Console.Write("Input name for found marker: ");
             string inputName = Console.ReadLine() ?? "";
@@ -76,7 +83,12 @@ namespace YatzeAR.Configurator
             return filter;
         }
 
-        private static bool ContinueOrStopConfiguring(out bool allowUndetectedDialog)
+        /// <summary>
+        /// Whether the program should continue looking for Markers or exit configurator
+        /// </summary>
+        /// <param name="allowUndetectedDialog"></param>
+        /// <returns>Continue result as boolean</returns>
+        private static bool ContinueConfigurating(out bool allowUndetectedDialog)
         {
             Console.WriteLine("\nPress 'SPACE' to stop configuring players");
             Console.WriteLine("Press 'ANY' to continue adding players - remember to add new marker!\n\n");
