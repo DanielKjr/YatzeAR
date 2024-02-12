@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace YatzeAR.YatzyLogik
 {
-	public class TurnHandler
+    public class TurnHandler
 	{
 
 		public List<User> Users { get; set; }

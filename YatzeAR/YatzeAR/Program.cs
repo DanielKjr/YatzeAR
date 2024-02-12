@@ -1,12 +1,18 @@
 ﻿using System.Drawing;
+using YatzeAR.Configurator;
+using YatzeAR.Marker;
 using YatzeAR.YatzyLogik;
 
 namespace YatzeAR
 {
-	public class Program
+    public class Program
 	{
 		static void Main(string[] args)
 		{
+			var users = GameConfigurator.Configurate();
+
+			//TODO: Update users.Contour within main game loop
+
 			var playerAR = new PlayerAR();
 			playerAR.Run();
 
@@ -25,8 +31,8 @@ namespace YatzeAR
 
 		public static void ConsoleTurnHandlerDebug()
 		{
-			User user = new User("TestUser");
-			User userTwo = new User("TestTwo");
+			User user = new User() { Name = "TestUser" };
+			User userTwo = new User() { Name = "TestTwo" };
 
 
 			List<User> users = new List<User>
