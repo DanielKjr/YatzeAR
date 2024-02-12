@@ -5,7 +5,7 @@ using Emgu.CV.Util;
 
 namespace YatzeAR
 {
-    public class DiceAR : FrameLoop
+    public class DiceAR
     {
         private byte blobColor = 0;
         private Matrix<float>? distCoeffs;
@@ -15,7 +15,7 @@ namespace YatzeAR
         private VideoCapture videoCapture;
         private bool useCamera;
 
-        public DiceAR(bool useCamera = false, int camIndex = 1, int desiredFPS = 30, bool colorInvertedDice = false)
+        public DiceAR(bool useCamera = true, int camIndex = 1, int desiredFPS = 30, bool colorInvertedDice = false)
         {
             if (!useCamera)
             {
@@ -39,9 +39,9 @@ namespace YatzeAR
         /// <summary>
         /// Main loop for Dice AR detection and logic.
         /// </summary>
-        public override void OnFrame()
+        public List<Dice> OnFrame()
         {
-            if (!fpsHandler.ShouldFrameBeRendered()) return;
+            if (!fpsHandler.ShouldFrameBeRendered()) return new List<Dice>();
 
             if (image != null)
             {
@@ -49,7 +49,7 @@ namespace YatzeAR
                 if (useCamera)
                 {
                     bool grabbed = videoCapture.Read(rawFrame);
-                    if (!grabbed) return;
+                    if (!grabbed) return new List<Dice>();
                 }
 
                 Mat binaryFrame = AR.ConvertToBinaryFrame(rawFrame);
@@ -64,7 +64,11 @@ namespace YatzeAR
 
                 CvInvoke.DrawContours(rawFrame, contours, -1, new MCvScalar(255, 0, 0), 2);
                 CvInvoke.Imshow("normal", rawFrame);
+
+                return dices;
             }
+
+            return new List<Dice>();
         }
 
         /// <summary>

@@ -14,7 +14,7 @@ namespace YatzeAR
 			
 
 			var diceAR = new DiceAR(false, 1, 30);
-			diceAR.Run();
+			diceAR.OnFrame();
 			//ConsoleTurnHandlerDebug();
 
 		}

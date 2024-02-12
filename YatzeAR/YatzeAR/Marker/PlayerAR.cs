@@ -8,34 +8,37 @@ using YatzeAR.YatzyLogik;
 
 namespace YatzeAR
 {
-    public class PlayerAR : FrameLoop
+    public class PlayerAR
     {
-        public List<User> FoundPlayerMarkers = new List<User>();
         private string? _image;
         private Matrix<float>? distCoeffs;
         private Matrix<float>? intrinsics;
         private VideoCapture vCap;
 
-        public PlayerAR()
+        public PlayerAR(bool useCamera = true, int camIndex = 1)
         {
-            vCap = new VideoCapture(0);
-            LoadImg();
-        }
-                
-        public void LoadImg()
-        {
-            string currentDir = Directory.GetCurrentDirectory();
-            string[] tmp = Directory.GetFiles(currentDir, "players_png.png");
-            _image = tmp[0];
+            if (!useCamera)
+            {
+                string currentDir = Directory.GetCurrentDirectory();
+                string[] tmp = Directory.GetFiles(currentDir, "players_png.png");
+                _image = tmp[0];
+            }
+
+            vCap = new VideoCapture(camIndex);
+
             AR.ReadIntrinsicsFromFile(out intrinsics, out distCoeffs);
         }
 
-        public override void OnFrame()
+        /// <summary>
+        /// Method for detecting User markers
+        /// </summary>
+        /// <returns>List of all found user markers</returns>
+        public List<User> OnFrame()
         {
+            List<User> foundUsers = new List<User>();
+
             if (_image != null)
             {
-                FoundPlayerMarkers.Clear();
-
                 Mat frame = CvInvoke.Imread(_image);
 
                 Mat binaryPlayer = AR.ConvertToBinaryFrame(frame);
@@ -60,20 +63,22 @@ namespace YatzeAR
                     if (!success)
                         continue;
 
-                    FoundPlayerMarkers.Add(new User() { Marker = playerName, Contour = validContours[i] });
+                    foundUsers.Add(new User() { Marker = playerName, Contour = validContours[i] });
 
                     Matrix<float> originScreen = new Matrix<float>(new float[] { .5f, .5f, 0f, 1 });
 
                     CvInvoke.PutText(frame, playerName, AR.WorldToScreen(originScreen, worldToScreenMatrix), FontFace.HersheyPlain, 1d, new MCvScalar(255, 0, 255), 1);
                 }
             }
+
+            return foundUsers;
         }
 
         public List<User> UpdateUserContour(List<User> users)
         {
-            OnFrame();
+            var foundUsers = OnFrame();
 
-            foreach (var found in FoundPlayerMarkers)
+            foreach (var found in foundUsers)
             {
                 foreach (var user in users)
                 {
@@ -118,7 +123,7 @@ namespace YatzeAR
 
         private bool FindPlayerPerspectiveMatrix(int orientIndex, VectorOfPoint contour, out Matrix<float> worldToScreenMatrix)
         {
-            worldToScreenMatrix = null;
+            worldToScreenMatrix = default!;
 
             MCvPoint3D32f[] objOrient = AR.WorldCoors[orientIndex];
             PointF[] contourPoints = contour.ToArray().Select(x => new PointF(x.X, x.Y)).ToArray();

@@ -12,13 +12,11 @@ namespace YatzeAR.Configuration
         {
             bool allowUndetectedDialog = false;
             List<User> configuredUsers = new List<User>();
-            PlayerAR markerDetection = new PlayerAR();
+            PlayerAR markerDetection = new PlayerAR(false);
 
             while (true)
-            {
-                markerDetection.OnFrame();
-
-                List<User> unconfiguredUsers = FilterMarkers(configuredUsers, markerDetection.FoundPlayerMarkers);
+            {             
+                List<User> unconfiguredUsers = FilterMarkers(configuredUsers, markerDetection.OnFrame());
 
                 if (unconfiguredUsers.Count > 0)
                 {
