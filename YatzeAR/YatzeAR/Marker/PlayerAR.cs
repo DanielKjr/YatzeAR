@@ -95,8 +95,6 @@ namespace YatzeAR
 
                     CvInvoke.PutText(frame, playerName, AR.WorldToScreen(originScreen, worldToScreenMatrix), FontFace.HersheyPlain, 1d, new MCvScalar(255, 0, 255), 1);
                 }
-
-                CvInvoke.Imshow("PlayersNames", frame);
             }
         }
 
