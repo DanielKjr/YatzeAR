@@ -142,29 +142,29 @@ namespace YatzeAR
         public static VectorOfVectorOfPoint GetValidContours(VectorOfVectorOfPoint contours)
         {
             VectorOfVectorOfPoint validContours = new VectorOfVectorOfPoint();
-
-
             for (int i = 0; i < contours.Size; i++)
             {
-                VectorOfPoint cont = contours[i];
+                VectorOfPoint contour = contours[i];
 
+                // Reduce number of points
                 VectorOfPoint approxPoly = new VectorOfPoint();
-                CvInvoke.ApproxPolyDP(cont, approxPoly, 8, true);
+                CvInvoke.ApproxPolyDP(contour, approxPoly, 6, true);
 
+                // Valid contours have 4 points
                 if (approxPoly.Size == 4)
                 {
-                    double contourLenght = CvInvoke.ArcLength(approxPoly, true);
+                    double contourLength = CvInvoke.ArcLength(approxPoly, true);
                     double contourArea = CvInvoke.ContourArea(approxPoly, true);
 
-                    //TODO skal måske også tjekkes
-                    bool validSize = contourLenght > 80 && contourLenght < 700;
-                    bool validOrientation = contourArea < 0;
+                    // Valid contours must also be within the specified size and correct orientation
+                    bool validSize = contourLength > 300 && contourLength < 900;
+                    bool validOrientation = contourArea > 0;
 
                     if (validSize && validOrientation)
                         validContours.Push(approxPoly);
                 }
-
             }
+
             return validContours;
         }
 

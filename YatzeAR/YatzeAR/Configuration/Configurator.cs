@@ -4,7 +4,6 @@ namespace YatzeAR.Configuration
 {
     public class Configurator
     {
-
         /// <summary>
         /// Master configuration method, users input their names upon a marker
         /// </summary>
@@ -62,31 +61,6 @@ namespace YatzeAR.Configuration
         }
 
         /// <summary>
-        /// Intakes lists of found users and removes any which bears the Marker of a configured user
-        /// </summary>
-        /// <param name="users"></param>
-        /// <param name="foundMarkers"></param>
-        /// <returns>Usable list of Users</returns>
-        private static List<User> FilterMarkers(List<User> users, List<User> foundMarkers)
-        {
-            List<User> filter = new List<User>(foundMarkers);
-
-            foreach (var marker in foundMarkers)
-            {
-                foreach (var user in users)
-                {
-                    if(marker.Marker == user.Marker)
-                    {
-                        filter.Remove(marker);
-                        break;
-                    }
-                }
-            }
-
-            return filter;
-        }
-
-        /// <summary>
         /// Whether the program should continue looking for Markers or exit configurator
         /// </summary>
         /// <returns>Continue result as boolean</returns>
@@ -107,6 +81,31 @@ namespace YatzeAR.Configuration
 
                 return true;
             }
+        }
+
+        /// <summary>
+        /// Intakes lists of found users and removes any which bears the Marker of a configured user
+        /// </summary>
+        /// <param name="users"></param>
+        /// <param name="foundMarkers"></param>
+        /// <returns>Usable list of Users</returns>
+        private static List<User> FilterMarkers(List<User> users, List<User> foundMarkers)
+        {
+            List<User> filter = new List<User>(foundMarkers);
+
+            foreach (var marker in foundMarkers)
+            {
+                foreach (var user in users)
+                {
+                    if (marker.Marker == user.Marker)
+                    {
+                        filter.Remove(marker);
+                        break;
+                    }
+                }
+            }
+
+            return filter;
         }
     }
 }

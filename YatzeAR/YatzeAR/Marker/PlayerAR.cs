@@ -21,36 +21,7 @@ namespace YatzeAR
             vCap = new VideoCapture(0);
             LoadImg();
         }
-
-        public static VectorOfVectorOfPoint GetValidContours(VectorOfVectorOfPoint contours)
-        {
-            VectorOfVectorOfPoint validContours = new VectorOfVectorOfPoint();
-            for (int i = 0; i < contours.Size; i++)
-            {
-                VectorOfPoint contour = contours[i];
-
-                // Reduce number of points
-                VectorOfPoint approxPoly = new VectorOfPoint();
-                CvInvoke.ApproxPolyDP(contour, approxPoly, 6, true);
-
-                // Valid contours have 4 points
-                if (approxPoly.Size == 4)
-                {
-                    double contourLength = CvInvoke.ArcLength(approxPoly, true);
-                    double contourArea = CvInvoke.ContourArea(approxPoly, true);
-
-                    // Valid contours must also be within the specified size and correct orientation
-                    bool validSize = contourLength > 300 && contourLength < 900;
-                    bool validOrientation = contourArea > 0;
-
-                    if (validSize && validOrientation)
-                        validContours.Push(approxPoly);
-                }
-            }
-
-            return validContours;
-        }
-
+                
         public void LoadImg()
         {
             string currentDir = Directory.GetCurrentDirectory();
@@ -72,7 +43,7 @@ namespace YatzeAR
                 VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
                 CvInvoke.FindContours(binaryPlayer, contours, null, RetrType.List, ChainApproxMethod.ChainApproxSimple);
 
-                VectorOfVectorOfPoint validContours = GetValidContours(contours);
+                VectorOfVectorOfPoint validContours = AR.GetValidContours(contours);
                 CvInvoke.DrawContours(frame, validContours, -1, new MCvScalar(255, 0, 0));
 
                 VectorOfMat undistortedPlayers = UndistortPlayerFromContours(frame, validContours);
