@@ -2,6 +2,7 @@
 using Emgu.CV;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
+using YatzeAR.DTO;
 
 namespace YatzeAR
 {
@@ -24,8 +25,14 @@ namespace YatzeAR
         /// <summary>
         /// Main loop for Dice AR detection and logic.
         /// </summary>
-        public List<Dice> OnFrame(Mat rawFrame)
+        public ProcessedDice OnFrame(Mat rawFrame, Mat drawFrame)
         {
+            if (drawFrame == null)
+            {
+                drawFrame = new Mat();
+                rawFrame.CopyTo(drawFrame);
+            }
+
             if (rawFrame != null)
             {
                 Mat binaryFrame = AR.ConvertToBinaryFrame(rawFrame);
@@ -36,15 +43,14 @@ namespace YatzeAR
 
                 ProcessDice(dices, rawFrame);
 
-                AR.DrawAreaAsText(contours, rawFrame);
+                AR.DrawAreaAsText(contours, drawFrame);
 
-                CvInvoke.DrawContours(rawFrame, contours, -1, new MCvScalar(255, 0, 0), 2);
-                CvInvoke.Imshow("normal", rawFrame);
+                CvInvoke.DrawContours(drawFrame, contours, -1, new MCvScalar(255, 0, 0), 2);
 
-                return dices;
+                return new ProcessedDice { Dices=dices, DrawnFrame = drawFrame};
             }
 
-            return new List<Dice>();
+            return new ProcessedDice();
         }
 
         /// <summary>

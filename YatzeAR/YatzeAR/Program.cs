@@ -9,18 +9,22 @@ namespace YatzeAR
         private static void Main(string[] args)
         {
             var unifiedCapturer = new UnifiedVideo(0);
-                var diceAR = new DiceAR();
+            var diceAR = new DiceAR();
+            var playerAR = new PlayerAR();
 
             var users = Configurator.Configurate(unifiedCapturer, true);
 
             while (true)
             {
-                CapturedImage image = unifiedCapturer.Capture(); //Fetch new image
+                CapturedImage camera = unifiedCapturer.Capture(); //Fetch new image
                 Mat anotherFrame = UnifiedVideo.LatestCapture; //Grab latest frame
 
-                if (image.GrabSuccess)
+                if (camera.GrabSuccess)
                 {
-                    diceAR.OnFrame(image.Frame);
+                    var a = playerAR.OnFrame(camera.Frame, null);
+                    var b = diceAR.OnFrame(camera.Frame, a.DrawnFrame);
+
+                    unifiedCapturer.DisplayImage(b.DrawnFrame);
                     //ConsoleTurnHandlerDebug();
                 }
             }

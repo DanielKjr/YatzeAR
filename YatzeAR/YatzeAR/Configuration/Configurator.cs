@@ -1,4 +1,5 @@
 ﻿using Emgu.CV;
+using YatzeAR.DTO;
 using YatzeAR.YatzyLogik;
 
 namespace YatzeAR.Configuration
@@ -17,9 +18,10 @@ namespace YatzeAR.Configuration
 
             while (true)
             {
-                CapturedImage image = GetImage(capturer, debug);
+                CapturedImage camera = GetImage(capturer, debug);
+                ProcessedMarkers markers = markerDetection.OnFrame(camera.Frame, camera.Frame);
 
-                List<User> unconfiguredUsers = FilterMarkers(configuredUsers, markerDetection.OnFrame(image.Frame));
+                List<User> unconfiguredUsers = FilterMarkers(configuredUsers, markers.Users);
 
                 if (unconfiguredUsers.Count > 0)
                 {

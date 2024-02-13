@@ -3,6 +3,7 @@ using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
+using YatzeAR.DTO;
 using YatzeAR.Marker;
 using YatzeAR.YatzyLogik;
 
@@ -19,12 +20,20 @@ namespace YatzeAR
         }
 
         /// <summary>
-        /// Method for detecting User markers
+        /// Input a raw camera feed and a frame to draw upon to search for Player Markers
         /// </summary>
-        /// <returns>List of all found user markers</returns>
-        public List<User> OnFrame(Mat rawFrame)
+        /// <param name="rawFrame"></param>
+        /// <param name="drawFrame"></param>
+        /// <returns>Object with list of Users and drawn frame containing info</returns>
+        public ProcessedMarkers OnFrame(Mat rawFrame, Mat drawFrame)
         {
             List<User> foundUsers = new List<User>();
+
+            if (drawFrame == null)
+            {
+                drawFrame=new Mat();
+                rawFrame.CopyTo(drawFrame);
+            }
 
             if (rawFrame != null)
             {
@@ -54,18 +63,18 @@ namespace YatzeAR
 
                     Matrix<float> originScreen = new Matrix<float>(new float[] { .5f, .5f, 0f, 1 });
 
-                    CvInvoke.PutText(rawFrame, playerName, AR.WorldToScreen(originScreen, worldToScreenMatrix), FontFace.HersheyPlain, 1d, new MCvScalar(255, 0, 255), 1);
+                    CvInvoke.PutText(drawFrame, playerName, AR.WorldToScreen(originScreen, worldToScreenMatrix), FontFace.HersheyPlain, 1d, new MCvScalar(255, 0, 255), 1);
                 }
             }
 
-            return foundUsers;
+            return new ProcessedMarkers { Users=foundUsers, DrawnFrame = rawFrame};
         }
 
         public List<User> UpdateUserContour(List<User> users, Mat rawFrame)
         {
-            var foundUsers = OnFrame(rawFrame);
+            var foundUsers = OnFrame(rawFrame, null);
 
-            foreach (var found in foundUsers)
+            foreach (var found in foundUsers.Users)
             {
                 foreach (var user in users)
                 {

@@ -1,13 +1,7 @@
 ﻿using Emgu.CV;
 
 namespace YatzeAR
-{
-    public class CapturedImage
-    {
-        public Mat Frame { get; set; } = new Mat();
-        public bool GrabSuccess { get; set; }
-    }
-
+{    
     public class UnifiedVideo
     {
         private VideoCapture vCap;
@@ -18,6 +12,12 @@ namespace YatzeAR
         }
 
         public static Mat LatestCapture { get; private set; } = new Mat();
+
+        public void DisplayImage(Mat frame)
+        {
+            CvInvoke.Imshow("YatzyAR", frame);
+            CvInvoke.WaitKey(20);
+        }
 
         public CapturedImage Capture()
         {
