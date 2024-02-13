@@ -2,11 +2,11 @@
 
 namespace YatzeAR
 {    
-    public class UnifiedVideo
+    public class CameraService
     {
         private VideoCapture vCap;
 
-        public UnifiedVideo(int camIndex = 1)
+        public CameraService(int camIndex = 1)
         {
             vCap = new VideoCapture(camIndex);
         }
@@ -16,7 +16,7 @@ namespace YatzeAR
         public void DisplayImage(Mat frame)
         {
             CvInvoke.Imshow("YatzyAR", frame);
-            CvInvoke.WaitKey(20);
+            CvInvoke.WaitKey(20); // For some reason this is needed before it can display, wtf?
         }
 
         public CapturedImage Capture()
@@ -26,7 +26,7 @@ namespace YatzeAR
 
             LatestCapture = rawFrame;
 
-            return new CapturedImage { Frame = rawFrame, GrabSuccess = grabbed };
+            return new CapturedImage { Frame = rawFrame, HasNewFrame = grabbed };
         }
 
         public CapturedImage LoadDebugImage(string imageName)
@@ -38,7 +38,7 @@ namespace YatzeAR
 
             LatestCapture = debugImage;
 
-            return new CapturedImage { Frame = debugImage, GrabSuccess = true };
+            return new CapturedImage { Frame = debugImage, HasNewFrame = true };
         }
     }
 }

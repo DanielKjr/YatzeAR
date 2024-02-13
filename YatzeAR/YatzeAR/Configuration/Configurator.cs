@@ -10,7 +10,7 @@ namespace YatzeAR.Configuration
         /// Master configuration method, users input their names upon a marker
         /// </summary>
         /// <returns>List of configured users</returns>
-        public static List<User> Configurate(UnifiedVideo capturer, bool debug = false)
+        public static List<User> Configurate(CameraService camService, bool debug = false)
         {
             bool allowUndetectedDialog = false;
             List<User> configuredUsers = new List<User>();
@@ -18,8 +18,8 @@ namespace YatzeAR.Configuration
 
             while (true)
             {
-                CapturedImage camera = GetImage(capturer, debug);
-                ProcessedMarkers markers = markerDetection.OnFrame(camera.Frame, camera.Frame);
+                CapturedImage capture = GetImage(camService, debug);
+                ProcessedMarkers markers = markerDetection.OnFrame(capture.Frame, capture.Frame);
 
                 List<User> unconfiguredUsers = FilterMarkers(configuredUsers, markers.Users);
 
@@ -111,7 +111,7 @@ namespace YatzeAR.Configuration
             return filter;
         }
 
-        private static CapturedImage GetImage(UnifiedVideo capturer, bool debug)
+        private static CapturedImage GetImage(CameraService capturer, bool debug)
         {
             if (debug)
             {
