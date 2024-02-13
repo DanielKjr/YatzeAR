@@ -1,4 +1,8 @@
 ﻿using Emgu.CV;
+using Emgu.CV.CvEnum;
+using Emgu.CV.Stitching;
+using Emgu.CV.Structure;
+using System.Drawing;
 using YatzeAR.Configuration;
 using YatzeAR.YatzyLogik;
 
@@ -8,11 +12,13 @@ namespace YatzeAR
     {
         private static void Main(string[] args)
         {
-            var camService = new CameraService(0);
+            var camService = new CameraService(1);
             var diceAR = new DiceAR();
             var playerAR = new PlayerAR();
 
             var users = Configurator.Configurate(camService, true);
+            users.ForEach(i => i.Rules = YatzyScoreboardReader.GetRules());
+            TurnHandler turnHandler = new TurnHandler(users);
 
             while (true)
             {
@@ -22,13 +28,31 @@ namespace YatzeAR
                 if (capture.HasNewFrame)
                 {
                     var a = playerAR.OnFrame(capture.Frame, null);
-                    var b = diceAR.OnFrame(capture.Frame, a.DrawnFrame);
-
-                    camService.DisplayImage(b.DrawnFrame);
+                    //var b = diceAR.OnFrame(capture.Frame, a.DrawnFrame);
+					DrawStuff(turnHandler, a.DrawnFrame);
+                    playerAR.UpdateUserContour(turnHandler.Users, a.DrawnFrame);
+					camService.DisplayImage(a.DrawnFrame);
+                  
                     //ConsoleTurnHandlerDebug();
                 }
             }
         }
+
+        private static void DrawStuff(TurnHandler turnHandler, Mat frame) {
+			foreach (var item in turnHandler.Users)
+			{       
+					Point top = new Point(item.Contour.X + item.Contour.Height, item.Contour.Y);
+					CvInvoke.PutText(frame, "User: " + item.Name, top, FontFace.HersheyPlain, 1.0, GetColor(turnHandler, item), 1);		
+			}
+		}
+        //doven måde at få farve på
+        private static MCvScalar GetColor(TurnHandler turnHandler, User user)
+        {
+            if (turnHandler.currentUser == user)
+                return new MCvScalar(255, 255, 0);
+            else
+                return new MCvScalar(255, 0, 255);
+		}
 
         public static void ConsoleTurnHandlerDebug()
         {

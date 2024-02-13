@@ -59,7 +59,7 @@ namespace YatzeAR
                     if (!success)
                         continue;
 
-                    foundUsers.Add(new User() { Marker = playerName, Contour = validContours[i] });
+                    foundUsers.Add(new User() { Marker = playerName, Contour = CvInvoke.BoundingRectangle(validContours[i]) });
 
                     Matrix<float> originScreen = new Matrix<float>(new float[] { .5f, .5f, 0f, 1 });
 
@@ -70,7 +70,7 @@ namespace YatzeAR
             return new ProcessedMarkers { Users = foundUsers, DrawnFrame = rawFrame };
         }
 
-        public List<User> UpdateUserContour(List<User> users, Mat rawFrame)
+        public void UpdateUserContour(List<User> users, Mat rawFrame)
         {
             var foundUsers = OnFrame(rawFrame, null);
 
@@ -86,7 +86,7 @@ namespace YatzeAR
                 }
             }
 
-            return users;
+            //return users;
         }
 
         private static byte[,] GetPlayerCenterValues(Mat warpedPlayer)
