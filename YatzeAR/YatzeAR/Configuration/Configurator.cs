@@ -119,6 +119,12 @@ namespace YatzeAR.Configuration
             return filter;
         }
 
+        /// <summary>
+        /// Returns image from CamService or loads a Debug depending on <paramref name="debug"/> boolean
+        /// </summary>
+        /// <param name="capturer"></param>
+        /// <param name="debug"></param>
+        /// <returns></returns>
         private static CapturedImage GetImage(CameraService capturer, bool debug)
         {
             if (debug)
@@ -131,6 +137,10 @@ namespace YatzeAR.Configuration
             }
         }
 
+        /// <summary>
+        /// Displays a looping 'seaching...' message in console
+        /// </summary>
+        /// <param name="desiredFPS"></param>
         private static void Searching(int desiredFPS)
         {
             string[] dots = new string[4] { "", ".", ". .", ". . ." };
