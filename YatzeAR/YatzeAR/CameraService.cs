@@ -1,26 +1,20 @@
 ﻿using Emgu.CV;
 
 namespace YatzeAR
-{    
+{
     public class CameraService
     {
-        private VideoCapture vCap;
         private int frameTime;
+        private VideoCapture vCap;
 
         public CameraService(int camIndex = 1, int desiredFPS = 60)
         {
             vCap = new VideoCapture(camIndex);
 
-            frameTime = (int)1000/desiredFPS;
+            frameTime = (int)1000 / desiredFPS;
         }
 
         public static Mat LatestCapture { get; private set; } = new Mat();
-
-        public void DisplayImage(Mat frame)
-        {
-            CvInvoke.Imshow("YatzyAR", frame);
-            CvInvoke.WaitKey(frameTime);
-        }
 
         public CapturedImage Capture()
         {
@@ -30,6 +24,12 @@ namespace YatzeAR
             LatestCapture = rawFrame;
 
             return new CapturedImage { Frame = rawFrame, HasNewFrame = grabbed };
+        }
+
+        public void DisplayImage(Mat frame)
+        {
+            CvInvoke.Imshow("YatzyAR", frame);
+            CvInvoke.WaitKey(frameTime);
         }
 
         public CapturedImage LoadDebugImage(string imageName)

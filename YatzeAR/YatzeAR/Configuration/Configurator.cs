@@ -1,5 +1,4 @@
-﻿using Emgu.CV;
-using YatzeAR.DTO;
+﻿using YatzeAR.DTO;
 using YatzeAR.YatzyLogik;
 
 namespace YatzeAR.Configuration

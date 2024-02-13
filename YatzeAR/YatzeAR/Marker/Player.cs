@@ -1,20 +1,14 @@
-﻿using Emgu.CV.CvEnum;
-using Emgu.CV.Structure;
-using Emgu.CV.Util;
+﻿using System.Drawing;
 using Emgu.CV;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Emgu.CV.CvEnum;
+using Emgu.CV.Util;
 
 namespace YatzeAR.Marker
 {
     internal class Player
     {
-        public const int WARPED_PLAYER_SIZE = 300;
         public const int PLAYER_GRID_COUNT = 6;
+        public const int WARPED_PLAYER_SIZE = 300;
 
         public static readonly VectorOfPoint PLAYER_SCREEN_COORDS = new VectorOfPoint(new[] {
             new Point(0, 0),
@@ -73,11 +67,10 @@ namespace YatzeAR.Marker
                 { 0, 0, 255, 255, 255, 0 },
                 { 0, 0, 0, 0, 0, 0 },
             }),
-
         };
 
-        private readonly Matrix<byte>[] playerOrientations = new Matrix<byte>[4];
         private readonly string name;
+        private readonly Matrix<byte>[] playerOrientations = new Matrix<byte>[4];
 
         private Player(string name, byte[,] playerData)
         {
@@ -90,18 +83,6 @@ namespace YatzeAR.Marker
             }
 
             this.name = name;
-        }
-
-        private int getPlayerOrientation(byte[,] playerData)
-        {
-            Matrix<byte> tmp = new Matrix<byte>(playerData);
-            for (int i = 0; i < playerOrientations.Length; i++)
-            {
-                if (playerOrientations[i].Equals(tmp))
-                    return i;
-            }
-
-            return -1;
         }
 
         public static bool TryFindPlayer(byte[,] playerData, out string playerName, out int orientation)
@@ -120,6 +101,18 @@ namespace YatzeAR.Marker
             }
 
             return false;
+        }
+
+        private int getPlayerOrientation(byte[,] playerData)
+        {
+            Matrix<byte> tmp = new Matrix<byte>(playerData);
+            for (int i = 0; i < playerOrientations.Length; i++)
+            {
+                if (playerOrientations[i].Equals(tmp))
+                    return i;
+            }
+
+            return -1;
         }
     }
 }

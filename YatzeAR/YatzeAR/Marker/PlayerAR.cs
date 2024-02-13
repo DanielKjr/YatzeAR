@@ -31,7 +31,7 @@ namespace YatzeAR
 
             if (drawFrame == null)
             {
-                drawFrame=new Mat();
+                drawFrame = new Mat();
                 rawFrame.CopyTo(drawFrame);
             }
 
@@ -67,7 +67,7 @@ namespace YatzeAR
                 }
             }
 
-            return new ProcessedMarkers { Users=foundUsers, DrawnFrame = rawFrame};
+            return new ProcessedMarkers { Users = foundUsers, DrawnFrame = rawFrame };
         }
 
         public List<User> UpdateUserContour(List<User> users, Mat rawFrame)

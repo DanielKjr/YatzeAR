@@ -47,7 +47,7 @@ namespace YatzeAR
 
                 CvInvoke.DrawContours(drawFrame, contours, -1, new MCvScalar(255, 0, 0), 2);
 
-                return new ProcessedDice { Dices=dices, DrawnFrame = drawFrame};
+                return new ProcessedDice { Dices = dices, DrawnFrame = drawFrame };
             }
 
             return new ProcessedDice();
