@@ -1,10 +1,13 @@
-﻿using YatzeAR.DTO;
+﻿using Emgu.CV;
+using YatzeAR.DTO;
 using YatzeAR.YatzyLogik;
 
 namespace YatzeAR.Configuration
 {
     public class Configurator
     {
+        private static byte dotIndex = 0;
+
         /// <summary>
         /// Master configuration method, users input their names upon a marker
         /// </summary>
@@ -39,6 +42,10 @@ namespace YatzeAR.Configuration
 
                     allowUndetectedDialog = false;
                 }
+                else
+                {
+                    Searching(2);
+                }
             }
 
             return configuredUsers;
@@ -51,7 +58,7 @@ namespace YatzeAR.Configuration
         /// <returns>Fully configured user</returns>
         private static User ConfigureMarker(User unconfiguredUser)
         {
-            Console.Write("Input name for found marker: ");
+            Console.Write($"Input name for marker '{unconfiguredUser.Marker}': ");
             string inputName = Console.ReadLine() ?? default!;
 
             if (inputName == "") inputName = $"Unnamed {unconfiguredUser.Marker}";
@@ -79,8 +86,6 @@ namespace YatzeAR.Configuration
 
             if (key.KeyChar == (char)ConsoleKey.Spacebar) // Continue configurating
             {
-                Console.WriteLine("\n\nSearching for new marker!\n\n");
-
                 return true;
             }
             else // Stop configurating
@@ -124,6 +129,24 @@ namespace YatzeAR.Configuration
             {
                 return capturer.Capture();
             }
+        }
+
+        private static void Searching(int desiredFPS)
+        {
+            string[] dots = new string[4] { "", ".", ". .", ". . ." };
+
+            Console.Clear();
+            Console.Write($"\n\n\nSearching for new player marker {dots[dotIndex]}");
+            Console.SetCursorPosition(0, 0);
+
+            dotIndex++;
+
+            if (dotIndex > dots.Length - 1)
+            {
+                dotIndex = 0;
+            }
+
+            CvInvoke.WaitKey((int)1000 / desiredFPS);
         }
     }
 }
