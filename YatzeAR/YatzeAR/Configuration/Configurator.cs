@@ -1,4 +1,5 @@
-﻿using YatzeAR.YatzyLogik;
+﻿using Emgu.CV;
+using YatzeAR.YatzyLogik;
 
 namespace YatzeAR.Configuration
 {
@@ -12,7 +13,7 @@ namespace YatzeAR.Configuration
         {
             bool allowUndetectedDialog = false;
             List<User> configuredUsers = new List<User>();
-            PlayerAR markerDetection = new PlayerAR(false);
+            PlayerAR markerDetection = new PlayerAR(true);
 
             while (true)
             {             
@@ -40,12 +41,44 @@ namespace YatzeAR.Configuration
             return configuredUsers;
         }
 
-        /// <summary>
-        /// Add name unto existing User
-        /// </summary>
-        /// <param name="unconfiguredUsers"></param>
-        /// <returns>Fully configured user</returns>
-        private static User ConfigureMarker(User unconfiguredUsers)
+        public static List<User> Configurate(VideoCapture videoCapture)
+		{
+			bool allowUndetectedDialog = false;
+			List<User> configuredUsers = new List<User>();
+			PlayerAR markerDetection = new PlayerAR(false);
+
+			while (true)
+			{
+				List<User> unconfiguredUsers = FilterMarkers(configuredUsers, markerDetection.OnFrame(videoCapture));
+
+				if (unconfiguredUsers.Count > 0)
+				{
+					User configuredMarker = ConfigureMarker(unconfiguredUsers[0]);
+
+					configuredUsers.Add(configuredMarker);
+
+					allowUndetectedDialog = true;
+				}
+				else if (allowUndetectedDialog)
+				{
+					if (!ContinueConfigurating())
+					{
+						break;
+					}
+
+					allowUndetectedDialog = false;
+				}
+			}
+
+			return configuredUsers;
+		}
+
+		/// <summary>
+		/// Add name unto existing User
+		/// </summary>
+		/// <param name="unconfiguredUsers"></param>
+		/// <returns>Fully configured user</returns>
+		private static User ConfigureMarker(User unconfiguredUsers)
         {
             Console.Write("Input name for found marker: ");
             string inputName = Console.ReadLine() ?? $"Unnamed {unconfiguredUsers.Marker}";

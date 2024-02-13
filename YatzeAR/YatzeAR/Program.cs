@@ -1,26 +1,56 @@
-﻿using System.Drawing;
+﻿using Emgu.CV;
+using System.Drawing;
 using YatzeAR.Configuration;
 using YatzeAR.Marker;
 using YatzeAR.YatzyLogik;
 
 namespace YatzeAR
 {
-    public class Program
+	public class Program
 	{
 		static void Main(string[] args)
 		{
-			var users = Configurator.Configurate();
 
+			VideoCapture vCap = new VideoCapture(1);
+
+			var users = Configurator.Configurate(vCap);
+
+			users.ForEach(i => i.Rules = YatzyScoreboardReader.GetRules());
+
+			users.First().Rules.ForEach(i => Console.WriteLine(i.Rule));
+			TurnHandler turnHandler = new TurnHandler(users);
+			PlayerAR markerDetection = new PlayerAR(true);
+	
 			
+			while (true)
+			{
+				Mat frame = new Mat();
+				bool frameGrabbed = vCap.Read(frame);
 
-			var diceAR = new DiceAR(false, 1, 30);
-			diceAR.OnFrame();
+
+				var diceAR = new DiceAR(true, 1, 30);
+
+
+				if (CvInvoke.PollKey() != -1)
+				{
+					List<Dice> roll = diceAR.OnFrame(frame);
+					turnHandler.HandleTurn(roll);
+				}
+				UI.UI.DrawUserInfo(turnHandler, frame);
+				markerDetection.UpdateUserContour(users);
+				CvInvoke.Imshow("frame", frame);
+				//UI.UI.DrawUserInfo(turnHandler, frame);
+			}
+		
+		
+
+			//UpdateUserContour
 			//ConsoleTurnHandlerDebug();
 
 		}
 
 
-		
+
 
 
 
@@ -46,7 +76,7 @@ namespace YatzeAR
 				new Dice(){Number = 1},
 				new Dice(){Number = 1},
 				new Dice(){Number= 2},
-				new Dice(){Number = 2},	
+				new Dice(){Number = 2},
 			};
 
 			if (turnHandler.SubmitDice(dice))
