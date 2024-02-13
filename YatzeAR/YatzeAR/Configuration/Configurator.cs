@@ -47,18 +47,22 @@ namespace YatzeAR.Configuration
         /// <summary>
         /// Add name unto existing User
         /// </summary>
-        /// <param name="unconfiguredUsers"></param>
+        /// <param name="unconfiguredUser"></param>
         /// <returns>Fully configured user</returns>
-        private static User ConfigureMarker(User unconfiguredUsers)
+        private static User ConfigureMarker(User unconfiguredUser)
         {
             Console.Write("Input name for found marker: ");
-            string inputName = Console.ReadLine() ?? $"Unnamed {unconfiguredUsers.Marker}";
+            string inputName = Console.ReadLine() ?? default!;
+
+            if (inputName == "") inputName = $"Unnamed {unconfiguredUser.Marker}";
+
+            Console.WriteLine($"'{unconfiguredUser.Marker}' is now: '{inputName}'\n");
 
             return new User
             {
                 Name = inputName,
-                Marker = unconfiguredUsers.Marker,
-                Contour = unconfiguredUsers.Contour
+                Marker = unconfiguredUser.Marker,
+                Contour = unconfiguredUser.Contour
             };
         }
 
@@ -68,20 +72,20 @@ namespace YatzeAR.Configuration
         /// <returns>Continue result as boolean</returns>
         private static bool ContinueConfigurating()
         {
-            Console.WriteLine("\nPress 'SPACE' to stop configuring players");
-            Console.WriteLine("Press 'ANY' to continue adding players - remember to add new marker!\n\n");
+            Console.WriteLine("\nPress 'ANY KEY' to stop configuring players");
+            Console.WriteLine("Press 'SPACE BAR' to continue adding players - remember to add new marker!\n\n");
 
             var key = Console.ReadKey();
 
-            if (key.KeyChar == (char)ConsoleKey.Spacebar) // Stop configurating
-            {
-                return false;
-            }
-            else // Continue configurating
+            if (key.KeyChar == (char)ConsoleKey.Spacebar) // Continue configurating
             {
                 Console.WriteLine("\n\nSearching for new marker!\n\n");
 
                 return true;
+            }
+            else // Stop configurating
+            {
+                return false;
             }
         }
 
