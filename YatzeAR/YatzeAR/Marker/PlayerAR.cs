@@ -52,21 +52,26 @@ namespace YatzeAR
                     bool markerFound = Player.TryFindPlayer(centerValues, out string playerName, out int orientIndex);
                     if (!markerFound) continue;
 
-                    bool perspectiveFound = FindPlayerPerspectiveMatrix(orientIndex, validContours[i], out Matrix<float> worldToScreenMatrix);
-                    if (!perspectiveFound) continue;
+
+                    bool success = FindPlayerPerspectiveMatrix(orientIndex, validContours[i], out Matrix<float> worldToScreenMatrix);
+                    if (!success)
+                        continue;
+
+                 
+
 
                     Matrix<float> originScreen = new Matrix<float>(new float[] { .5f, .5f, 0f, 1 });
 
                     CvInvoke.PutText(drawFrame, playerName, AR.WorldToScreen(originScreen, worldToScreenMatrix), FontFace.HersheyPlain, 1d, new MCvScalar(255, 0, 255), 1);
 
-                    foundUsers.Add(new User() { Marker = playerName, Contour = validContours[i] });
+                    foundUsers.Add(new User() { Marker = playerName, Contour = CvInvoke.BoundingRectangle(validContours[i]) });
                 }
             }
 
             return new ProcessedMarkers { Users = foundUsers, DrawnFrame = drawFrame };
         }
 
-        public List<User> UpdateUserContour(List<User> users, Mat rawFrame)
+        public void UpdateUserContour(List<User> users, Mat rawFrame)
         {
             var foundUsers = OnFrame(rawFrame, null);
 
@@ -82,7 +87,7 @@ namespace YatzeAR
                 }
             }
 
-            return users;
+            //return users;
         }
 
         private static byte[,] GetPlayerCenterValues(Mat warpedPlayer)
