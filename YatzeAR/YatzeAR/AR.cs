@@ -110,8 +110,8 @@ namespace YatzeAR
         /// Draws Contour Area as text unto incoming frame
         /// </summary>
         /// <param name="DPCounter"></param>
-        /// <param name="rawFrame"></param>
-        public static void DrawAreaAsText(VectorOfVectorOfPoint DPCounter, Mat rawFrame)
+        /// <param name="drawFrame"></param>
+        public static void DrawAreaAsText(VectorOfVectorOfPoint DPCounter, Mat drawFrame)
         {
             for (int i = 0; i < DPCounter.Size; i++)
             {
@@ -120,7 +120,7 @@ namespace YatzeAR
 
                 // Display the area size on the image
                 Point areaTextLocation = new Point(boundingRectangle.X, boundingRectangle.Y - 10); // Position the text above the contour
-                CvInvoke.PutText(rawFrame, $"{area}", areaTextLocation, FontFace.HersheySimplex, 0.5f, new MCvScalar(0, 255, 0));
+                CvInvoke.PutText(drawFrame, $"{area}", areaTextLocation, FontFace.HersheySimplex, 0.5f, new MCvScalar(0, 255, 0));
             }
         }
 
@@ -129,12 +129,15 @@ namespace YatzeAR
         /// </summary>
         /// <param name="numberOfPips"></param>
         /// <param name="boundingRectangle"></param>
-        /// <param name="rawFrame"></param>
+        /// <param name="drawFrame"></param>
         /// <param name="fontThickness"></param>
-        public static void DrawPipCountAsText(int numberOfPips, Rectangle boundingRectangle, Mat rawFrame, int fontThickness = 2)
+        public static void DrawPipCountAsText(int numberOfPips, VectorOfPoint contour, Mat drawFrame, int fontThickness = 2)
         {
+            Rectangle boundingRectangle = CvInvoke.BoundingRectangle(contour);
+
             Point centerOfDice = new Point(boundingRectangle.X + boundingRectangle.Width / 2 - 5, boundingRectangle.Y + boundingRectangle.Height / 2 + 5);
-            CvInvoke.PutText(rawFrame, numberOfPips.ToString(), centerOfDice, FontFace.HersheySimplex, 1.0, new MCvScalar(0, 0, 255), fontThickness);
+
+            CvInvoke.PutText(drawFrame, numberOfPips.ToString(), centerOfDice, FontFace.HersheySimplex, 1.0, new MCvScalar(0, 0, 255), fontThickness);
         }
 
         /// <summary>
@@ -168,6 +171,31 @@ namespace YatzeAR
             }
 
             return dices;
+        }
+
+        /// <summary>
+        /// Converts to incoming binary frame into a byte array
+        /// </summary>
+        /// <param name="binaryFrame"></param>
+        /// <returns></returns>
+        public static byte[,] FrameToByteArray(Mat binaryFrame)
+        {
+            Image<Gray, byte> binaryImage = binaryFrame.ToImage<Gray, byte>();
+
+            int xSize = binaryFrame.Width;
+            int ySize = binaryFrame.Height;
+
+            byte[,] diceArray = new byte[xSize, ySize];
+
+            for (int x = 0; x < xSize; x++)
+            {
+                for (int y = 0; y < ySize; y++)
+                {
+                    diceArray[x, y] = binaryImage.Data[y, x, 0];
+                }
+            }
+
+            return diceArray;
         }
 
         /// <summary>
