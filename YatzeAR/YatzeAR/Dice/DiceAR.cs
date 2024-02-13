@@ -9,29 +9,14 @@ namespace YatzeAR
     {
         private byte blobColor = 0;
         private Matrix<float>? distCoeffs;
-        private FPSHandler fpsHandler;
-        private string? image;
         private Matrix<float>? intrinsics;
-        private VideoCapture videoCapture;
-        private bool useCamera;
 
-        public DiceAR(bool useCamera = true, int camIndex = 1, int desiredFPS = 30, bool colorInvertedDice = false)
+        public DiceAR(bool colorInvertedDice = false)
         {
-            if (!useCamera)
-            {
-                string currentDir = Directory.GetCurrentDirectory();
-                string[] tmp = Directory.GetFiles(currentDir, "dice5.png");
-                image = tmp[0];
-            }
-            this.useCamera = useCamera;
-            videoCapture = new VideoCapture(camIndex);
-
             if (colorInvertedDice)
             {
                 blobColor = 255;
             }
-
-            fpsHandler = new FPSHandler(desiredFPS);
 
             AR.ReadIntrinsicsFromFile(out intrinsics, out distCoeffs);
         }
@@ -39,19 +24,10 @@ namespace YatzeAR
         /// <summary>
         /// Main loop for Dice AR detection and logic.
         /// </summary>
-        public List<Dice> OnFrame()
+        public List<Dice> OnFrame(Mat rawFrame)
         {
-            if (!fpsHandler.ShouldFrameBeRendered()) return new List<Dice>();
-
-            if (image != null)
+            if (rawFrame != null)
             {
-                Mat rawFrame = CvInvoke.Imread(image);
-                if (useCamera)
-                {
-                    bool grabbed = videoCapture.Read(rawFrame);
-                    if (!grabbed) return new List<Dice>();
-                }
-
                 Mat binaryFrame = AR.ConvertToBinaryFrame(rawFrame);
 
                 VectorOfVectorOfPoint contours = AR.DouglasPeuckerFilter(binaryFrame);

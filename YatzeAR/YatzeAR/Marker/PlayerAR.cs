@@ -10,22 +10,11 @@ namespace YatzeAR
 {
     public class PlayerAR
     {
-        private string? _image;
         private Matrix<float>? distCoeffs;
         private Matrix<float>? intrinsics;
-        private VideoCapture vCap;
 
-        public PlayerAR(bool useCamera = true, int camIndex = 1)
+        public PlayerAR()
         {
-            if (!useCamera)
-            {
-                string currentDir = Directory.GetCurrentDirectory();
-                string[] tmp = Directory.GetFiles(currentDir, "players_png.png");
-                _image = tmp[0];
-            }
-
-            vCap = new VideoCapture(camIndex);
-
             AR.ReadIntrinsicsFromFile(out intrinsics, out distCoeffs);
         }
 
@@ -33,23 +22,21 @@ namespace YatzeAR
         /// Method for detecting User markers
         /// </summary>
         /// <returns>List of all found user markers</returns>
-        public List<User> OnFrame()
+        public List<User> OnFrame(Mat rawFrame)
         {
             List<User> foundUsers = new List<User>();
 
-            if (_image != null)
+            if (rawFrame != null)
             {
-                Mat frame = CvInvoke.Imread(_image);
-
-                Mat binaryPlayer = AR.ConvertToBinaryFrame(frame);
+                Mat binaryPlayer = AR.ConvertToBinaryFrame(rawFrame);
 
                 VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
                 CvInvoke.FindContours(binaryPlayer, contours, null, RetrType.List, ChainApproxMethod.ChainApproxSimple);
 
                 VectorOfVectorOfPoint validContours = AR.GetValidContours(contours);
-                CvInvoke.DrawContours(frame, validContours, -1, new MCvScalar(255, 0, 0));
+                CvInvoke.DrawContours(rawFrame, validContours, -1, new MCvScalar(255, 0, 0));
 
-                VectorOfMat undistortedPlayers = UndistortPlayerFromContours(frame, validContours);
+                VectorOfMat undistortedPlayers = UndistortPlayerFromContours(rawFrame, validContours);
 
                 for (int i = 0; i < undistortedPlayers.Size; i++)
                 {
@@ -67,16 +54,16 @@ namespace YatzeAR
 
                     Matrix<float> originScreen = new Matrix<float>(new float[] { .5f, .5f, 0f, 1 });
 
-                    CvInvoke.PutText(frame, playerName, AR.WorldToScreen(originScreen, worldToScreenMatrix), FontFace.HersheyPlain, 1d, new MCvScalar(255, 0, 255), 1);
+                    CvInvoke.PutText(rawFrame, playerName, AR.WorldToScreen(originScreen, worldToScreenMatrix), FontFace.HersheyPlain, 1d, new MCvScalar(255, 0, 255), 1);
                 }
             }
 
             return foundUsers;
         }
 
-        public List<User> UpdateUserContour(List<User> users)
+        public List<User> UpdateUserContour(List<User> users, Mat rawFrame)
         {
-            var foundUsers = OnFrame();
+            var foundUsers = OnFrame(rawFrame);
 
             foreach (var found in foundUsers)
             {

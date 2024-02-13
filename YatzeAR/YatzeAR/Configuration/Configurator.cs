@@ -1,4 +1,5 @@
-﻿using YatzeAR.YatzyLogik;
+﻿using Emgu.CV;
+using YatzeAR.YatzyLogik;
 
 namespace YatzeAR.Configuration
 {
@@ -8,15 +9,17 @@ namespace YatzeAR.Configuration
         /// Master configuration method, users input their names upon a marker
         /// </summary>
         /// <returns>List of configured users</returns>
-        public static List<User> Configurate(bool markerDetectionUseCamera = true, int camIndex = 1)
+        public static List<User> Configurate(UnifiedVideo capturer, bool debug = false)
         {
             bool allowUndetectedDialog = false;
             List<User> configuredUsers = new List<User>();
-            PlayerAR markerDetection = new PlayerAR(markerDetectionUseCamera, camIndex);
+            PlayerAR markerDetection = new PlayerAR();
 
             while (true)
-            {             
-                List<User> unconfiguredUsers = FilterMarkers(configuredUsers, markerDetection.OnFrame());
+            {
+                CapturedImage image = GetImage(capturer, debug);
+
+                List<User> unconfiguredUsers = FilterMarkers(configuredUsers, markerDetection.OnFrame(image.Frame));
 
                 if (unconfiguredUsers.Count > 0)
                 {
@@ -104,6 +107,18 @@ namespace YatzeAR.Configuration
             }
 
             return filter;
+        }
+
+        private static CapturedImage GetImage(UnifiedVideo capturer, bool debug)
+        {
+            if (debug)
+            {
+                return capturer.LoadDebugImage("players_png.png");
+            }
+            else
+            {
+                return capturer.Capture();
+            }
         }
     }
 }
