@@ -15,6 +15,33 @@ namespace YatzeAR
             new Point(0, 300)
         });
 
+        public static readonly MCvPoint3D32f[][] WorldCoors = new[] {
+            new MCvPoint3D32f[]{
+                new MCvPoint3D32f(0, 0, 0),
+                new MCvPoint3D32f(1, 0, 0),
+                new MCvPoint3D32f(1, 1, 0),
+                new MCvPoint3D32f(0, 1, 0)
+            },
+            new MCvPoint3D32f[]{
+                new MCvPoint3D32f(1, 0, 0),
+                new MCvPoint3D32f(1, 1, 0),
+                new MCvPoint3D32f(0, 1, 0),
+                new MCvPoint3D32f(0, 0, 0)
+            },
+            new MCvPoint3D32f[]{
+                new MCvPoint3D32f(1, 1, 0),
+                new MCvPoint3D32f(0, 1, 0),
+                new MCvPoint3D32f(0, 0, 0),
+                new MCvPoint3D32f(1, 0, 0)
+            },
+            new MCvPoint3D32f[]{
+                new MCvPoint3D32f(0, 1, 0),
+                new MCvPoint3D32f(0, 0, 0),
+                new MCvPoint3D32f(1, 0, 0),
+                new MCvPoint3D32f(1, 1, 0)
+            }
+        };
+
         /// <summary>
         /// Converts incoming frame into a binary Mat
         /// </summary>
@@ -33,11 +60,15 @@ namespace YatzeAR
 
         /// <summary>
         /// Finds Contours and filters them using Douglas Peucker's algorithm
-        /// <para>Then filters out any contours </para>
+        /// <para><paramref name="areaLessThanContourSize"/> is whether less or greater than should be applied to the calculation</para>
+        /// <para><paramref name="curveSize"/> is for the Peucker calculations Curve size</para>
         /// </summary>
         /// <param name="binaryImg"></param>
+        /// <param name="curveSize"></param>
+        /// <param name="minContourSize"></param>
+        /// <param name="areaLessThanContourSize"></param>
         /// <returns></returns>
-        public static VectorOfVectorOfPoint DouglasPeuckerFilter(Mat binaryImg, int minContourSize = 0)
+        public static VectorOfVectorOfPoint DouglasPeuckerFilter(Mat binaryImg, int curveSize = 10, bool areaLessThanContourSize = true, int minContourSize = 0)
         {
             VectorOfVectorOfPoint rawContours = new VectorOfVectorOfPoint();
             VectorOfVectorOfPoint approxContours = new VectorOfVectorOfPoint();
@@ -49,14 +80,14 @@ namespace YatzeAR
                 VectorOfPoint contour = rawContours[i];
                 VectorOfPoint approx = new VectorOfPoint();
 
-                CvInvoke.ApproxPolyDP(contour, approx, 10, true);
+                CvInvoke.ApproxPolyDP(contour, approx, curveSize, true);
 
                 if (approx.Size == 4)
                 {
                     double contourArea = CvInvoke.ContourArea(approx, true);
                     bool area = true;
 
-                    if (minContourSize <= 0)
+                    if (areaLessThanContourSize)
                     {
                         area = contourArea < minContourSize;
                     }
@@ -139,35 +170,6 @@ namespace YatzeAR
             return dices;
         }
 
-        public static VectorOfVectorOfPoint GetValidContours(VectorOfVectorOfPoint contours)
-        {
-            VectorOfVectorOfPoint validContours = new VectorOfVectorOfPoint();
-            for (int i = 0; i < contours.Size; i++)
-            {
-                VectorOfPoint contour = contours[i];
-
-                // Reduce number of points
-                VectorOfPoint approxPoly = new VectorOfPoint();
-                CvInvoke.ApproxPolyDP(contour, approxPoly, 6, true);
-
-                // Valid contours have 4 points
-                if (approxPoly.Size == 4)
-                {
-                    double contourLength = CvInvoke.ArcLength(approxPoly, true);
-                    double contourArea = CvInvoke.ContourArea(approxPoly, true);
-
-                    // Valid contours must also be within the specified size and correct orientation
-                    bool validSize = contourLength > 300 && contourLength < 900;
-                    bool validOrientation = contourArea > 0;
-
-                    if (validSize && validOrientation)
-                        validContours.Push(approxPoly);
-                }
-            }
-
-            return validContours;
-        }
-
         /// <summary>
         /// Reads camera specific intrinsics data from file.
         /// </summary>
@@ -215,33 +217,5 @@ namespace YatzeAR
             Matrix<float> result = projection * worldPoint;
             return new Point((int)(result[0, 0] / result[2, 0]), (int)(result[1, 0] / result[2, 0]));
         }
-
-        public static readonly MCvPoint3D32f[][] WorldCoors = new[] {
-            new MCvPoint3D32f[]{
-                new MCvPoint3D32f(0, 0, 0),
-                new MCvPoint3D32f(1, 0, 0),
-                new MCvPoint3D32f(1, 1, 0),
-                new MCvPoint3D32f(0, 1, 0)
-            },
-            new MCvPoint3D32f[]{
-                new MCvPoint3D32f(1, 0, 0),
-                new MCvPoint3D32f(1, 1, 0),
-                new MCvPoint3D32f(0, 1, 0),
-                new MCvPoint3D32f(0, 0, 0)
-            },
-            new MCvPoint3D32f[]{
-                new MCvPoint3D32f(1, 1, 0),
-                new MCvPoint3D32f(0, 1, 0),
-                new MCvPoint3D32f(0, 0, 0),
-                new MCvPoint3D32f(1, 0, 0)
-            },
-            new MCvPoint3D32f[]{
-                new MCvPoint3D32f(0, 1, 0),
-                new MCvPoint3D32f(0, 0, 0),
-                new MCvPoint3D32f(1, 0, 0),
-                new MCvPoint3D32f(1, 1, 0)
-            }
-        };
-
     }
 }

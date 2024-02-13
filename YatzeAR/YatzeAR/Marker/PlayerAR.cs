@@ -37,12 +37,10 @@ namespace YatzeAR
 
             if (rawFrame != null)
             {
-                Mat binaryPlayer = AR.ConvertToBinaryFrame(rawFrame);
+                Mat binaryFrame = AR.ConvertToBinaryFrame(rawFrame);
 
-                VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
-                CvInvoke.FindContours(binaryPlayer, contours, null, RetrType.List, ChainApproxMethod.ChainApproxSimple);
+                VectorOfVectorOfPoint validContours = AR.DouglasPeuckerFilter(binaryFrame, 6, false);
 
-                VectorOfVectorOfPoint validContours = AR.GetValidContours(contours);
                 CvInvoke.DrawContours(rawFrame, validContours, -1, new MCvScalar(255, 0, 0));
 
                 VectorOfMat undistortedPlayers = UndistortPlayerFromContours(rawFrame, validContours);
@@ -51,23 +49,21 @@ namespace YatzeAR
                 {
                     byte[,] centerValues = GetPlayerCenterValues(undistortedPlayers[i]);
 
-                    bool diceFound = Player.TryFindPlayer(centerValues, out string playerName, out int orientIndex);
-                    if (!diceFound)
-                        continue;
+                    bool markerFound = Player.TryFindPlayer(centerValues, out string playerName, out int orientIndex);
+                    if (!markerFound) continue;
 
-                    bool success = FindPlayerPerspectiveMatrix(orientIndex, validContours[i], out Matrix<float> worldToScreenMatrix);
-                    if (!success)
-                        continue;
-
-                    foundUsers.Add(new User() { Marker = playerName, Contour = validContours[i] });
+                    bool perspectiveFound = FindPlayerPerspectiveMatrix(orientIndex, validContours[i], out Matrix<float> worldToScreenMatrix);
+                    if (!perspectiveFound) continue;
 
                     Matrix<float> originScreen = new Matrix<float>(new float[] { .5f, .5f, 0f, 1 });
 
                     CvInvoke.PutText(drawFrame, playerName, AR.WorldToScreen(originScreen, worldToScreenMatrix), FontFace.HersheyPlain, 1d, new MCvScalar(255, 0, 255), 1);
+
+                    foundUsers.Add(new User() { Marker = playerName, Contour = validContours[i] });
                 }
             }
 
-            return new ProcessedMarkers { Users = foundUsers, DrawnFrame = rawFrame };
+            return new ProcessedMarkers { Users = foundUsers, DrawnFrame = drawFrame };
         }
 
         public List<User> UpdateUserContour(List<User> users, Mat rawFrame)
