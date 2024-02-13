@@ -9,7 +9,7 @@ namespace YatzeAR
 	{
 		static void Main(string[] args)
 		{
-			var users = Configurator.Configurate();
+			var users = Configurator.Configurate(false);
 
 			
 
