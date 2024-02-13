@@ -5,10 +5,13 @@ namespace YatzeAR
     public class CameraService
     {
         private VideoCapture vCap;
+        private int frameTime;
 
-        public CameraService(int camIndex = 1)
+        public CameraService(int camIndex = 1, int desiredFPS = 60)
         {
             vCap = new VideoCapture(camIndex);
+
+            frameTime = (int)1000/desiredFPS;
         }
 
         public static Mat LatestCapture { get; private set; } = new Mat();
@@ -16,7 +19,7 @@ namespace YatzeAR
         public void DisplayImage(Mat frame)
         {
             CvInvoke.Imshow("YatzyAR", frame);
-            CvInvoke.WaitKey(20); // For some reason this is needed before it can display, wtf?
+            CvInvoke.WaitKey(frameTime);
         }
 
         public CapturedImage Capture()
