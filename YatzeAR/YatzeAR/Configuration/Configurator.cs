@@ -1,10 +1,13 @@
-﻿using YatzeAR.DTO;
+﻿using Emgu.CV;
+using YatzeAR.DTO;
 using YatzeAR.YatzyLogik;
 
 namespace YatzeAR.Configuration
 {
     public class Configurator
     {
+        private static byte dotIndex = 0;
+
         /// <summary>
         /// Master configuration method, users input their names upon a marker
         /// </summary>
@@ -39,6 +42,10 @@ namespace YatzeAR.Configuration
 
                     allowUndetectedDialog = false;
                 }
+                else
+                {
+                    Searching(2);
+                }
             }
 
             return configuredUsers;
@@ -47,18 +54,22 @@ namespace YatzeAR.Configuration
         /// <summary>
         /// Add name unto existing User
         /// </summary>
-        /// <param name="unconfiguredUsers"></param>
+        /// <param name="unconfiguredUser"></param>
         /// <returns>Fully configured user</returns>
-        private static User ConfigureMarker(User unconfiguredUsers)
+        private static User ConfigureMarker(User unconfiguredUser)
         {
-            Console.Write("Input name for found marker: ");
-            string inputName = Console.ReadLine() ?? $"Unnamed {unconfiguredUsers.Marker}";
+            Console.Write($"Input name for marker '{unconfiguredUser.Marker}': ");
+            string inputName = Console.ReadLine() ?? default!;
+
+            if (inputName == "") inputName = $"Unnamed {unconfiguredUser.Marker}";
+
+            Console.WriteLine($"'{unconfiguredUser.Marker}' is now: '{inputName}'\n");
 
             return new User
             {
                 Name = inputName,
-                Marker = unconfiguredUsers.Marker,
-                Contour = unconfiguredUsers.Contour
+                Marker = unconfiguredUser.Marker,
+                Contour = unconfiguredUser.Contour
             };
         }
 
@@ -68,20 +79,18 @@ namespace YatzeAR.Configuration
         /// <returns>Continue result as boolean</returns>
         private static bool ContinueConfigurating()
         {
-            Console.WriteLine("\nPress 'SPACE' to stop configuring players");
-            Console.WriteLine("Press 'ANY' to continue adding players - remember to add new marker!\n\n");
+            Console.WriteLine("\nPress 'ANY KEY' to stop configuring players");
+            Console.WriteLine("Press 'SPACE BAR' to continue adding players - remember to add new marker!\n\n");
 
             var key = Console.ReadKey();
 
-            if (key.KeyChar == (char)ConsoleKey.Spacebar) // Stop configurating
+            if (key.KeyChar == (char)ConsoleKey.Spacebar) // Continue configurating
+            {
+                return true;
+            }
+            else // Stop configurating
             {
                 return false;
-            }
-            else // Continue configurating
-            {
-                Console.WriteLine("\n\nSearching for new marker!\n\n");
-
-                return true;
             }
         }
 
@@ -110,6 +119,12 @@ namespace YatzeAR.Configuration
             return filter;
         }
 
+        /// <summary>
+        /// Returns image from CamService or loads a Debug depending on <paramref name="debug"/> boolean
+        /// </summary>
+        /// <param name="capturer"></param>
+        /// <param name="debug"></param>
+        /// <returns></returns>
         private static CapturedImage GetImage(CameraService capturer, bool debug)
         {
             if (debug)
@@ -120,6 +135,28 @@ namespace YatzeAR.Configuration
             {
                 return capturer.Capture();
             }
+        }
+
+        /// <summary>
+        /// Displays a looping 'seaching...' message in console
+        /// </summary>
+        /// <param name="desiredFPS"></param>
+        private static void Searching(int desiredFPS)
+        {
+            string[] dots = new string[4] { "", ".", ". .", ". . ." };
+
+            Console.Clear();
+            Console.Write($"\n\n\nSearching for new player marker {dots[dotIndex]}");
+            Console.SetCursorPosition(0, 0);
+
+            dotIndex++;
+
+            if (dotIndex > dots.Length - 1)
+            {
+                dotIndex = 0;
+            }
+
+            CvInvoke.WaitKey((int)1000 / desiredFPS);
         }
     }
 }

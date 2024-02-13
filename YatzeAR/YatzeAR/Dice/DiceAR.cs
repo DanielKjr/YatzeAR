@@ -41,7 +41,17 @@ namespace YatzeAR
 
                 List<Dice> dices = AR.FindHomography(contours, binaryFrame);
 
-                ProcessDice(dices, rawFrame);
+                foreach (var dice in dices)
+                {
+                    Mat resizedBinaryFrame = AR.ResizeBinaryFrame(dice.Mat, 50);
+
+                    byte[,] diceArray = AR.FrameToByteArray(resizedBinaryFrame);
+
+                    int numberOfPips = CountPips(diceArray, 40, 100);
+                    dice.Number = numberOfPips;
+
+                    AR.DrawPipCountAsText(numberOfPips, dice.Contour, drawFrame);
+                }
 
                 AR.DrawAreaAsText(contours, drawFrame);
 
@@ -107,42 +117,6 @@ namespace YatzeAR
             }
 
             return numberOfPips;
-        }
-
-        /// <summary>
-        /// Count number of pips, display it, and add pip count into Dices list for usage in Yatze logic.
-        /// </summary>
-        /// <param name="Dices"></param>
-        /// <param name="rawFrame"></param>
-        /// <param name="diceSize"></param>
-        private void ProcessDice(List<Dice> Dices, Mat rawFrame, int diceSize = 50)
-        {
-            foreach (var dice in Dices)
-            {
-                Mat binaryFrame = AR.ResizeBinaryFrame(dice.Mat, diceSize);
-
-                Image<Gray, byte> binaryImage = binaryFrame.ToImage<Gray, byte>();
-
-                Rectangle boundingRectangle = CvInvoke.BoundingRectangle(dice.Contour);
-
-                // Create a byte array of the appropriate size
-                byte[,] diceArray = new byte[diceSize, diceSize];
-
-                // Fill the array with the pixel values from the dice region of the image
-                for (int x = 0; x < diceSize; x++)
-                {
-                    for (int y = 0; y < diceSize; y++)
-                    {
-                        diceArray[x, y] = binaryImage.Data[y, x, 0];
-                    }
-                }
-
-                //Count pips using Daniels DFS method. In image size 50x50 the blob size is typically 55-90
-                int numberOfPips = CountPips(diceArray, 40, 100);
-                dice.Number = numberOfPips;
-
-                AR.DrawPipCountAsText(numberOfPips, boundingRectangle, rawFrame);
-            }
         }
     }
 }
