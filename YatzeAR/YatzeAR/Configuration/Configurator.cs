@@ -8,11 +8,11 @@ namespace YatzeAR.Configuration
         /// Master configuration method, users input their names upon a marker
         /// </summary>
         /// <returns>List of configured users</returns>
-        public static List<User> Configurate(bool markerDetectionUseCamera = true)
+        public static List<User> Configurate(bool markerDetectionUseCamera = true, int camIndex = 1)
         {
             bool allowUndetectedDialog = false;
             List<User> configuredUsers = new List<User>();
-            PlayerAR markerDetection = new PlayerAR(markerDetectionUseCamera);
+            PlayerAR markerDetection = new PlayerAR(markerDetectionUseCamera, camIndex);
 
             while (true)
             {             
