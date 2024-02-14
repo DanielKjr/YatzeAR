@@ -44,22 +44,22 @@ namespace YatzeAR
 
                 foreach (var dice in dices)
                 {
-                    Mat resizedBinaryFrame = AR.ResizeBinaryFrame(dice.Mat, 50);
-
-                    byte[,] diceArray = AR.FrameToByteArray(resizedBinaryFrame);
-
                     int contourArea = (int)CvInvoke.ContourArea(dice.Contour);
 
                     if (contourArea < 1500)
                     {
+                        Mat resizedBinaryFrame = AR.ResizeBinaryFrame(dice.Mat, 50);
+
+                        byte[,] diceArray = AR.FrameToByteArray(resizedBinaryFrame);
+
                         dice.Number = CountPips(diceArray, 40, 100);
 
                         if (dice.Number > 0)
                         {
                             AR.DrawPipCountAsText(dice.Number, dice.Contour, drawFrame);
-
+#if DEBUG
                             AR.DrawAreaAsText(contourArea, dice, drawFrame);
-
+#endif
                             drawableContours.Push(dice.Contour);
                         }
                     }
