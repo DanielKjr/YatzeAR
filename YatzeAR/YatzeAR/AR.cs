@@ -61,13 +61,14 @@ namespace YatzeAR
         /// <summary>
         /// Finds Contours and filters them using Douglas Peucker's algorithm
         /// <para><paramref name="curveSize"/> is for the Peucker calculations Curve size</para>
+        /// <para><paramref name="greaterThan"/> is wether wanted contourSize is greater than (or less than when false) compared to contourSize</para>
         /// </summary>
         /// <param name="binaryImg"></param>
         /// <param name="curveSize"></param>
-        /// <param name="maxContourSize"></param>
-        /// <param name="minContourSize"></param>
+        /// <param name="contourSize"></param>
+        /// <param name="greaterThan"></param>
         /// <returns></returns>
-        public static VectorOfVectorOfPoint DouglasPeuckerFilter(Mat binaryImg, int curveSize = 10, int maxContourSize = 1000, int minContourSize = 0)
+        public static VectorOfVectorOfPoint DouglasPeuckerFilter(Mat binaryImg, int curveSize = 10, int contourSize = 0, bool greaterThan = false)
         {
             VectorOfVectorOfPoint rawContours = new VectorOfVectorOfPoint();
             VectorOfVectorOfPoint approxContours = new VectorOfVectorOfPoint();
@@ -84,8 +85,12 @@ namespace YatzeAR
                 if (approx.Size == 4)
                 {
                     double contourArea = CvInvoke.ContourArea(approx, true);
-                    
-                    if (contourArea > minContourSize && contourArea < maxContourSize)
+                    bool isCorrectContourSize;
+
+                    if (greaterThan) isCorrectContourSize = contourArea > contourSize;
+                    else isCorrectContourSize = contourArea < contourSize;
+
+                    if (isCorrectContourSize)
                     {
                         approxContours.Push(approx);
                     }
@@ -117,7 +122,7 @@ namespace YatzeAR
         /// Draws a number of pips onto the dice
         /// </summary>
         /// <param name="numberOfPips"></param>
-        /// <param name="boundingRectangle"></param>
+        /// <param name="contour"></param>
         /// <param name="drawFrame"></param>
         /// <param name="fontThickness"></param>
         public static void DrawPipCountAsText(int numberOfPips, VectorOfPoint contour, Mat drawFrame, int fontThickness = 2)
