@@ -60,13 +60,12 @@ namespace YatzeAR
 
         /// <summary>
         /// Finds Contours and filters them using Douglas Peucker's algorithm
-        /// <para><paramref name="areaLessThanContourSize"/> is whether less or greater than should be applied to the calculation</para>
         /// <para><paramref name="curveSize"/> is for the Peucker calculations Curve size</para>
         /// </summary>
         /// <param name="binaryImg"></param>
         /// <param name="curveSize"></param>
+        /// <param name="maxContourSize"></param>
         /// <param name="minContourSize"></param>
-        /// <param name="areaLessThanContourSize"></param>
         /// <returns></returns>
         public static VectorOfVectorOfPoint DouglasPeuckerFilter(Mat binaryImg, int curveSize = 10, int maxContourSize = 1000, int minContourSize = 0)
         {
