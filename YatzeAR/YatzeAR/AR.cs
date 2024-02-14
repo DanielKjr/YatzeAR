@@ -8,13 +8,7 @@ namespace YatzeAR
 {
     public static class AR
     {
-        public static readonly VectorOfPoint MARKER_SCREEN_COORDS = new VectorOfPoint(new[] {
-            new Point(0, 0),
-            new Point(300, 0),
-            new Point(300, 300),
-            new Point(0, 300)
-        });
-
+       
         public static readonly MCvPoint3D32f[][] WorldCoors = new[] {
             new MCvPoint3D32f[]{
                 new MCvPoint3D32f(0, 0, 0),
