@@ -78,18 +78,11 @@ namespace YatzeAR.YatzyLogik
 
 		public void CheckForSpecialRule()
 		{
-			//hvis reglen er sum tæller den sammen og slutter turen
-			if (CurrentRule.Rule == "Sum" && !CurrentRule.FilledIn)
-			{
-				int points = currentUser.Rules.Where(currentUser => currentUser.FilledIn).Sum(currentUser => currentUser.Points);
-				CurrentRule.Points += points;
-				EndTurn();
-			}
+			
 			//hvis reglen er bonus tjekker den om summen er over 63 og tilføjer 50 point hvis den er
 			if (CurrentRule.Rule == "Bonus" && !CurrentRule.FilledIn)
 			{
-				YatzyRule rule = currentUser.Rules.Where(x => x.Rule == "Sum").First();
-				if (rule.Points >= 63)
+				if (currentUser.Score >= 63)
 					CurrentRule.Points += 50;
 				EndTurn();
 			}
