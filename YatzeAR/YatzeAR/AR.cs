@@ -95,21 +95,17 @@ namespace YatzeAR
         }
 
         /// <summary>
-        /// Draws Contour Area as text unto incoming frame
+        /// Draws contour size upon contour as text
         /// </summary>
-        /// <param name="DPCounter"></param>
+        /// <param name="area"></param>
+        /// <param name="dice"></param>
         /// <param name="drawFrame"></param>
-        public static void DrawAreaAsText(VectorOfVectorOfPoint DPCounter, Mat drawFrame)
+        public static void DrawAreaAsText(int area, Dice dice, Mat drawFrame)
         {
-            for (int i = 0; i < DPCounter.Size; i++)
-            {
-                Rectangle boundingRectangle = CvInvoke.BoundingRectangle(DPCounter[i]);
-                int area = (int)CvInvoke.ContourArea(DPCounter[i]);
+            Rectangle boundingRectangle = CvInvoke.BoundingRectangle(dice.Contour);
 
-                // Display the area size on the image
-                Point areaTextLocation = new Point(boundingRectangle.X, boundingRectangle.Y - 10); // Position the text above the contour
-                CvInvoke.PutText(drawFrame, $"{area}", areaTextLocation, FontFace.HersheySimplex, 0.5f, new MCvScalar(0, 255, 0));
-            }
+            Point areaTextLocation = new Point(boundingRectangle.X, boundingRectangle.Y - 10); // Position the text above the contour
+            CvInvoke.PutText(drawFrame, $"{area}", areaTextLocation, FontFace.HersheySimplex, 0.5f, new MCvScalar(0, 255, 0));
         }
 
         /// <summary>

@@ -53,11 +53,20 @@ namespace YatzeAR
                     dice.Number = numberOfPips;
 
                     AR.DrawPipCountAsText(numberOfPips, dice.Contour, drawFrame);
+
+                    int contourArea = (int)CvInvoke.ContourArea(dice.Contour);
+
+                    if(contourArea < 1500)
+                    {
+                        AR.DrawAreaAsText(contourArea ,dice, drawFrame);
+
+                        CvInvoke.DrawContours(drawFrame, dice.Contour, -1, new MCvScalar(255, 0, 0), 2);
+                    }
                 }
 
-                AR.DrawAreaAsText(contours, drawFrame);
+                //AR.DrawAreaAsText(contours, drawFrame);
 
-                CvInvoke.DrawContours(drawFrame, contours, -1, new MCvScalar(255, 0, 0), 2);
+                //CvInvoke.DrawContours(drawFrame, contours, -1, new MCvScalar(255, 0, 0), 2);
 
                 return new ProcessedDice { Dices = dices, DrawnFrame = drawFrame };
             }
