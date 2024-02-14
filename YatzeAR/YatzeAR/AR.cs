@@ -68,7 +68,7 @@ namespace YatzeAR
         /// <param name="minContourSize"></param>
         /// <param name="areaLessThanContourSize"></param>
         /// <returns></returns>
-        public static VectorOfVectorOfPoint DouglasPeuckerFilter(Mat binaryImg, int curveSize = 10, bool areaLessThanContourSize = true, int minContourSize = 0)
+        public static VectorOfVectorOfPoint DouglasPeuckerFilter(Mat binaryImg, int curveSize = 10, int maxContourSize = 1000, int minContourSize = 0)
         {
             VectorOfVectorOfPoint rawContours = new VectorOfVectorOfPoint();
             VectorOfVectorOfPoint approxContours = new VectorOfVectorOfPoint();
@@ -85,18 +85,8 @@ namespace YatzeAR
                 if (approx.Size == 4)
                 {
                     double contourArea = CvInvoke.ContourArea(approx, true);
-                    bool area = true;
-
-                    if (areaLessThanContourSize)
-                    {
-                        area = contourArea < minContourSize;
-                    }
-                    else
-                    {
-                        area = contourArea > minContourSize;
-                    }
-
-                    if (area)
+                    
+                    if (contourArea > minContourSize && contourArea < maxContourSize)
                     {
                         approxContours.Push(approx);
                     }

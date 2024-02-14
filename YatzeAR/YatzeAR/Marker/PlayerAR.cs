@@ -39,7 +39,7 @@ namespace YatzeAR
             {
                 Mat binaryFrame = AR.ConvertToBinaryFrame(rawFrame);
 
-                VectorOfVectorOfPoint validContours = AR.DouglasPeuckerFilter(binaryFrame, 6, false);
+                VectorOfVectorOfPoint validContours = AR.DouglasPeuckerFilter(binaryFrame, 6);
 
                 //CvInvoke.DrawContours(rawFrame, validContours, -1, new MCvScalar(255, 0, 0));
 
