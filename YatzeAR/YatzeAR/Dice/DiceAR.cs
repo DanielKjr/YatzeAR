@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Drawing;
+﻿using System.Drawing;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
@@ -39,6 +38,7 @@ namespace YatzeAR
                 Mat binaryFrame = AR.ConvertToBinaryFrame(rawFrame);
 
                 VectorOfVectorOfPoint contours = AR.DouglasPeuckerFilter(binaryFrame);
+                VectorOfVectorOfPoint drawableContours = new VectorOfVectorOfPoint();
 
                 List<Dice> dices = AR.FindHomography(contours, binaryFrame);
 
@@ -47,26 +47,25 @@ namespace YatzeAR
                     Mat resizedBinaryFrame = AR.ResizeBinaryFrame(dice.Mat, 50);
 
                     byte[,] diceArray = AR.FrameToByteArray(resizedBinaryFrame);
-                    
-                    int numberOfPips = CountPips(diceArray, 40, 100);
-                   
-                    dice.Number = numberOfPips;
-
-                    AR.DrawPipCountAsText(numberOfPips, dice.Contour, drawFrame);
 
                     int contourArea = (int)CvInvoke.ContourArea(dice.Contour);
 
-                    if(contourArea < 1500)
+                    if (contourArea < 1500)
                     {
-                        AR.DrawAreaAsText(contourArea ,dice, drawFrame);
+                        dice.Number = CountPips(diceArray, 40, 100);
 
-                        CvInvoke.DrawContours(drawFrame, dice.Contour, -1, new MCvScalar(255, 0, 0), 2);
+                        if (dice.Number > 0)
+                        {
+                            AR.DrawPipCountAsText(dice.Number, dice.Contour, drawFrame);
+
+                            AR.DrawAreaAsText(contourArea, dice, drawFrame);
+
+                            drawableContours.Push(dice.Contour);
+                        }
                     }
                 }
 
-                //AR.DrawAreaAsText(contours, drawFrame);
-
-                //CvInvoke.DrawContours(drawFrame, contours, -1, new MCvScalar(255, 0, 0), 2);
+                CvInvoke.DrawContours(drawFrame, drawableContours, -1, new MCvScalar(255, 0, 0), 2);
 
                 return new ProcessedDice { Dices = dices, DrawnFrame = drawFrame };
             }
