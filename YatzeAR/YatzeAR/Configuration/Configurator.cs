@@ -69,7 +69,7 @@ namespace YatzeAR.Configuration
             {
                 Name = inputName,
                 Marker = unconfiguredUser.Marker,
-                Contour = unconfiguredUser.Contour
+                Rectangle = unconfiguredUser.Rectangle
             };
         }
 

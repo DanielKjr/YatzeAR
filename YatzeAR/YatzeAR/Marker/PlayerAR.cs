@@ -41,7 +41,7 @@ namespace YatzeAR
 
                 VectorOfVectorOfPoint validContours = AR.DouglasPeuckerFilter(binaryFrame, 6, false);
 
-                CvInvoke.DrawContours(rawFrame, validContours, -1, new MCvScalar(255, 0, 0));
+                //CvInvoke.DrawContours(rawFrame, validContours, -1, new MCvScalar(255, 0, 0));
 
                 VectorOfMat undistortedPlayers = UndistortPlayerFromContours(rawFrame, validContours);
 
@@ -57,14 +57,14 @@ namespace YatzeAR
                     if (!success)
                         continue;
 
-                 
 
 
-                    Matrix<float> originScreen = new Matrix<float>(new float[] { .5f, .5f, 0f, 1 });
 
-                    CvInvoke.PutText(drawFrame, playerName, AR.WorldToScreen(originScreen, worldToScreenMatrix), FontFace.HersheyPlain, 1d, new MCvScalar(255, 0, 255), 1);
+                    //Matrix<float> originScreen = new Matrix<float>(new float[] { .5f, .5f, 0f, 1 });
 
-                    foundUsers.Add(new User() { Marker = playerName, Contour = CvInvoke.BoundingRectangle(validContours[i]) });
+                    //CvInvoke.PutText(drawFrame, playerName, AR.WorldToScreen(originScreen, worldToScreenMatrix), FontFace.HersheyPlain, 1d, new MCvScalar(255, 0, 255), 1);
+
+                    foundUsers.Add(new User() { Marker = playerName, Rectangle = CvInvoke.BoundingRectangle(validContours[i]) });
                 }
             }
 
@@ -81,10 +81,15 @@ namespace YatzeAR
                 {
                     if (user.Marker == found.Marker)
                     {
-                        user.Contour = found.Contour;
+                        user.Rectangle = found.Rectangle;
                         break;
                     }
+                    else if(!foundUsers.Users.Contains(user))
+                        user.Rectangle = new Rectangle(-00, -500, 1, 1);
+
                 }
+                
+                    
             }
 
             //return users;
