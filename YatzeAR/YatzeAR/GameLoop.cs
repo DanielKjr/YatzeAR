@@ -42,8 +42,11 @@ namespace YatzeAR
 					var b = diceAR.OnFrame(capture.Frame, a.DrawnFrame);
 					playerAR.UpdateUserContour(turnHandler.Users, a.DrawnFrame);
 					DrawStuff(a.DrawnFrame);
-					
-
+				
+					if(CvInvoke.WaitKey(5) != -1)
+					{
+						turnHandler.SubmitDice(b.Dices);
+					}
 					camService.DisplayImage(a.DrawnFrame);
 
 					//ConsoleTurnHandlerDebug();

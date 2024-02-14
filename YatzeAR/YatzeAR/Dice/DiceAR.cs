@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.Diagnostics;
+using System.Drawing;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
@@ -46,8 +47,9 @@ namespace YatzeAR
                     Mat resizedBinaryFrame = AR.ResizeBinaryFrame(dice.Mat, 50);
 
                     byte[,] diceArray = AR.FrameToByteArray(resizedBinaryFrame);
-
+                    
                     int numberOfPips = CountPips(diceArray, 40, 100);
+                   
                     dice.Number = numberOfPips;
 
                     AR.DrawPipCountAsText(numberOfPips, dice.Contour, drawFrame);

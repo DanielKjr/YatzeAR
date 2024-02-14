@@ -29,8 +29,8 @@ namespace YatzeAR
         public void DisplayImage(Mat frame)
         {
             CvInvoke.Imshow("YatzyAR", frame);
-            CvInvoke.WaitKey(frameTime);
-        }
+			Task.Delay(frameTime).Wait();
+		}
 
         public CapturedImage LoadDebugImage(string imageName)
         {
